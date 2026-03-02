@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+/venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Next.js / React
+/.next/
+/out/
+/build/
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+.pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env and Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+
+# Project Specific
+backend/uploads/
+uploads/
+*.xlsx
+!sample_interns.xlsx
+!Intern_Mentor_Dummy_Data (1).xlsx
