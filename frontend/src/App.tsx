@@ -5,11 +5,13 @@ import FileUpload from './components/FileUpload';
 import InternGrid from './components/InternGrid';
 import ChatBot from './components/ChatBot';
 import BatchDashboard from './components/BatchDashboard';
+import GlobalDashboard from './components/GlobalDashboard';
 import Settings from './components/Settings';
+import { Globe } from 'lucide-react';
 import './App.css';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('overview'); // Changed initial tab to 'overview'
+  const [activeTab, setActiveTab] = useState('global');
   const [data, setData] = useState([]);
   const [manager, setManager] = useState<any>(null);
   const [batches, setBatches] = useState<any[]>([]);
@@ -222,8 +224,15 @@ function App() {
         </div>
 
         <nav style={{ flex: 1 }}>
-          <button className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
-            <Home size={18} /> Overview
+          <button className={`nav-link ${activeTab === 'global' ? 'active' : ''}`} onClick={() => setActiveTab('global')}>
+            <Globe size={18} /> Global Overview
+          </button>
+
+          <div style={{ margin: '1rem 0', height: '1px', background: 'var(--border)' }}></div>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700', padding: '0 1rem', marginBottom: '0.5rem' }}>Workspace Tools</p>
+
+          <button className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')} disabled={!activeBatch}>
+            <Home size={18} /> Batch Overview
           </button>
           <button className={`nav-link ${activeTab === 'scores' ? 'active' : ''}`} onClick={() => setActiveTab('scores')} disabled={!activeBatch}>
             <BarChart2 size={18} /> Performance
@@ -246,7 +255,9 @@ function App() {
       </div>
 
       <main className="main-content">
-        {!activeBatch ? (
+        {activeTab === 'global' ? (
+          <GlobalDashboard managerId={manager.manager_id} />
+        ) : !activeBatch ? (
           <div className="card" style={{ textAlign: 'center', marginTop: '10rem', background: 'rgba(99, 102, 241, 0.05)', borderStyle: 'dashed' }}>
             <BookOpen size={48} style={{ color: 'var(--primary)', marginBottom: '1.5rem', opacity: 0.5 }} />
             <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>No Active Workspace</h2>
@@ -396,7 +407,7 @@ function App() {
                     setData([]);
                     setSubjects([]);
                     setSheetInfo(null);
-                    setActiveTab('overview');
+                    setActiveTab('global');
                     setShowDeleteModal(false);
                   } catch (e) {
                     console.error("Failed to delete batch", e);

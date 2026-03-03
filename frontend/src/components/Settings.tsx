@@ -91,18 +91,15 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
                             />
                         </div>
 
-                        <div className="input-group">
-                            <label style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span>Borderline Approval</span>
-                                <span style={{ color: '#fbbf24', fontWeight: '700' }}>{settings.borderline_score}%</span>
+                        <div className="input-group" style={{ opacity: 0.8, background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.75rem', border: '1px dashed var(--border)' }}>
+                            <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <span>Borderline Zone (Auto-Calculated)</span>
+                                <span style={{ color: '#fbbf24', fontWeight: '700' }}>{settings.passing_score + 1}% - {Math.max(settings.passing_score + 1, settings.recommended_score - 1)}%</span>
                             </label>
-                            <input
-                                type="range"
-                                min="0" max="100"
-                                value={settings.borderline_score}
-                                onChange={(e) => setSettings({ ...settings, borderline_score: parseInt(e.target.value) })}
-                                style={{ width: '100%' }}
-                            />
+                            <div style={{ width: '100%', height: '8px', background: 'linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #10b981 100%)', borderRadius: '4px', opacity: 0.5, marginTop: '0.5rem' }}></div>
+                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.75rem', lineHeight: '1.4' }}>
+                                Interns scoring strictly above the Redline and below the Recommended line are placed in the Yellow zone.
+                            </p>
                         </div>
 
                         <div className="input-group">
