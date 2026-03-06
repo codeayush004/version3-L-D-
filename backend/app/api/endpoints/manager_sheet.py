@@ -83,8 +83,6 @@ async def sync_feedback(data: SyncFeedbackModel):
             csv_url = url.split("/view")[0] + "/export?format=csv"
         else:
             csv_url = url.rstrip('/') + "/export?format=csv"
-
-        print(f"Attempting to sync from: {csv_url}")
         
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -93,16 +91,12 @@ async def sync_feedback(data: SyncFeedbackModel):
         try:
             response = requests.get(csv_url, headers=headers, timeout=10)
         except Exception as e:
-            print(f"Request error: {str(e)}")
             raise HTTPException(status_code=400, detail=f"Request failed: {str(e)}")
 
         if response.status_code != 200:
-            print(f"Failed to fetch. Status: {response.status_code}")
-            print(f"Response snippet: {response.text[:200]}")
             raise HTTPException(status_code=400, detail=f"Failed to fetch sheet data (Status {response.status_code}). Ensure it is public and shared as 'Anyone with the link can view'.")
         
         df = pd.read_csv(StringIO(response.text))
-        print(f"CSV fetched. Columns: {list(df.columns)}")
         
         # Identify key columns (case-insensitive fuzzy matching)
         def find_col(keywords):
@@ -117,7 +111,6 @@ async def sync_feedback(data: SyncFeedbackModel):
         if not emp_id_col or not feedback_col:
             found_cols = list(df.columns)
             error_msg = f"Required columns not found. We need an ID column (found: {emp_id_col or 'Missing'}) and a Feedback column (found: {feedback_col or 'Missing'}). Found columns: {found_cols}"
-            print(error_msg)
             raise HTTPException(status_code=400, detail=error_msg)
 
         sync_count = 0

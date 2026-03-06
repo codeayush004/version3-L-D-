@@ -27,19 +27,15 @@ async def register(data: AuthModel):
 @router.post("/login")
 async def login(data: AuthModel):
     login_username = data.username.strip().lower()
-    print(f"[DEBUG] Login attempt for: {login_username}")
     
     manager = managers_collection.find_one({'username': {'$regex': f'^{login_username}$', '$options': 'i'}})
     
     if not manager:
-        print(f"[DEBUG] User not found: {login_username}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     if not check_password_hash(manager['password'], data.password):
-        print(f"[DEBUG] Password mismatch for: {login_username}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    print(f"[DEBUG] Login successful: {login_username}")
     return {
         "message": "Login successful",
         "manager_id": manager['manager_id'],

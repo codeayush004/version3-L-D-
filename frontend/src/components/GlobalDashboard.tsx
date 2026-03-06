@@ -5,16 +5,17 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 interface Props {
     managerId: string;
+    activeDepartment: string;
 }
 
-const GlobalDashboard: React.FC<Props> = ({ managerId }) => {
+const GlobalDashboard: React.FC<Props> = ({ managerId, activeDepartment }) => {
     const [loading, setLoading] = useState(true);
     const [globalStats, setGlobalStats] = useState<any>(null);
 
     useEffect(() => {
         const fetchAllData = async () => {
             try {
-                const batchRes = await axios.get(`http://localhost:5000/api/batches?manager_id=${managerId}`);
+                const batchRes = await axios.get(`http://localhost:5000/api/batches?manager_id=${managerId}&department=${activeDepartment}`);
                 const batchList = batchRes.data;
 
                 // 2. Fetch scores, settings, and subjects for EVERY batch
@@ -92,7 +93,7 @@ const GlobalDashboard: React.FC<Props> = ({ managerId }) => {
         };
 
         if (managerId) fetchAllData();
-    }, [managerId]);
+    }, [managerId, activeDepartment]);
 
     if (loading) return <div className="card glass" style={{ textAlign: 'center', padding: '4rem' }}><div className="spinner"></div></div>;
     if (!globalStats || globalStats.totalBatches === 0) return (

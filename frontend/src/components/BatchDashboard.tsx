@@ -42,7 +42,6 @@ const BatchDashboard: React.FC<Props> = ({ data, subjects, batchName, managerId,
 
         const internAverages = data.map(intern => {
             let finalScore = 0;
-            let totalWeightsApplied = 0;
 
             if (settings?.weightages) {
                 subjects.forEach(sub => {
@@ -50,7 +49,6 @@ const BatchDashboard: React.FC<Props> = ({ data, subjects, batchName, managerId,
                     const weight = settings.weightages[sub.name];
                     if (weight) {
                         finalScore += (score / sub.total_marks) * weight;
-                        totalWeightsApplied += weight;
                     }
                 });
 

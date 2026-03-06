@@ -24,14 +24,6 @@ async def upload_interns(
         if not all(col in df.columns for col in required_bio):
             raise HTTPException(status_code=400, detail=f"Excel must at least contain: {required_bio}")
         
-        potential_subjects = [
-            col.strip() for col in df.columns 
-            if col.strip() not in required_bio 
-            and col.strip() not in ['manager_id', 'batch_id']
-            and 'Feedback' not in col
-            and 'Comment' not in col
-        ]
-        
         subj_doc = subjects_collection.find_one({'manager_id': manager_id, 'batch_id': batch_id})
         raw_existing = []
         if subj_doc:
@@ -39,28 +31,42 @@ async def upload_interns(
         
         existing_list = []
         existing_names = []
-        for s in raw_existing:
-            name = s['name'] if isinstance(s, dict) else s
-            if name not in existing_names:
-                existing_names.append(name)
-                existing_list.append(s if isinstance(s, dict) else {"name": s, "total_marks": 100})
-                
-        # Inject fixed subjects so they are always recognized
-        fixed_subjects = ['Assessment', 'Assignment', 'Tech Viva', 'Tech Demo']
-        for fs in fixed_subjects:
-            if fs not in existing_names:
+        if raw_existing:
+            for s in raw_existing:
+                name = s['name'] if isinstance(s, dict) else s
+                if name not in existing_names:
+                    existing_names.append(name)
+                    existing_list.append(s if isinstance(s, dict) else {"name": s, "total_marks": 100})
+        else:
+            # Fallback if somehow missing (should be initialized by batches.py)
+            batch = batches_collection.find_one({'batch_id': batch_id})
+            is_de = batch and batch.get('department') == 'Data Engineering'
+            fallback = ['Capstone project', 'Internal Project', 'Internal Assessment Scores', 'External Vendor Scores', 'Mentor Feedback', 'Viva Scores', 'Presentation/Communication', 'L&D Feedback'] if is_de else ['Assessment', 'Assignment', 'Tech Viva', 'Tech Demo']
+            
+            for fs in fallback:
                 existing_names.append(fs)
                 existing_list.append({"name": fs, "total_marks": 100})
+                
+        potential_subjects = []
+        for col in df.columns:
+            c = col.strip()
+            if c in required_bio or c in ['manager_id', 'batch_id']:
+                continue
+            clean_name = c.split('(')[0].strip()
+            is_text_feedback = ('Feedback' in c or 'Comment' in c) and clean_name not in existing_names
+            if not is_text_feedback:
+                potential_subjects.append(c)
                 
         new_subjects_added = False
         for col in potential_subjects:
             clean_name = col.split('(')[0].strip()
-            if clean_name not in [s['name'] for s in existing_list]:
+            if clean_name not in existing_names:
                 total = 100
                 if '(' in col and 'Total' in col:
                     try: total = int(col.split(':')[-1].replace(')', '').strip())
                     except: total = 100
                 
+                existing_names.append(clean_name)
                 existing_list.append({"name": clean_name, "total_marks": total})
                 new_subjects_added = True
         
@@ -96,11 +102,10 @@ async def upload_interns(
                     if pd.notnull(val) and (isinstance(val, (int, float, complex)) or hasattr(val, '__int__')):
                         scores_to_save[f"scores.{clean_name}"] = float(val)
 
-            # Ensure fixed subjects ALWAYS have at least a 0 score if missing from Excel
-            for fs in fixed_subjects:
-                if f"scores.{fs}" not in scores_to_save:
-                    # Check if it was completely missing from the df, or just empty
-                    scores_to_save[f"scores.{fs}"] = 0.0
+            # Ensure all initialized subjects have at least a 0 score if missing from Excel
+            for subject_name in existing_names:
+                if f"scores.{subject_name}" not in scores_to_save:
+                    scores_to_save[f"scores.{subject_name}"] = 0.0
 
             if scores_to_save:
                 scores_collection.update_one(
@@ -111,7 +116,9 @@ async def upload_interns(
             
             # Save feedback columns
             for col in df.columns:
-                if 'Feedback' in col or 'Comment' in col:
+                clean_name = col.split('(')[0].strip()
+                is_text_feedback = ('Feedback' in col or 'Comment' in col) and clean_name not in existing_names
+                if is_text_feedback:
                     val = row[col]
                     if pd.notnull(val) and str(val).strip():
                         feedback_collection.update_one(

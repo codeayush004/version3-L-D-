@@ -26,12 +26,7 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
     const [subjects, setSubjects] = useState<{ name: string, total_marks: number }[]>([]);
     const [settings, setSettings] = useState<any>(null);
 
-    const FIXED_SUBJECTS = [
-        { name: 'Assessment', total_marks: 100, color: '#10b981' },
-        { name: 'Assignment', total_marks: 100, color: '#3b82f6' },
-        { name: 'Tech Viva', total_marks: 100, color: '#f59e0b' },
-        { name: 'Tech Demo', total_marks: 100, color: '#6366f1' }
-    ];
+
 
     useEffect(() => {
         const fetchSubjectsAndSettings = async () => {
@@ -175,11 +170,11 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
                         <tr>
                             <th>Intern Name</th>
                             <th>Emp ID</th>
-                            {subjects.filter(s => !FIXED_SUBJECTS.map(f => f.name).includes(s.name)).map(s => (
+                            {subjects.map(s => (
                                 <th key={s.name}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
-                                            <div style={{ color: 'var(--text-main)' }}>{s.name}</div>
+                                            <div style={{ color: 'var(--primary)' }}>{s.name}</div>
                                             <div style={{ fontSize: '0.6rem', opacity: 0.6 }}>Total: {s.total_marks}</div>
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.25rem' }}>
@@ -201,14 +196,6 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
                                     </div>
                                 </th>
                             ))}
-                            {FIXED_SUBJECTS.map(s => (
-                                <th key={s.name} style={{ background: `${s.color}05`, borderBottom: `2px solid ${s.color}` }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <div style={{ color: s.color, fontWeight: '800', fontSize: '0.85rem' }}>{s.name}</div>
-                                        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>FTE Metric • Total: {s.total_marks}</div>
-                                    </div>
-                                </th>
-                            ))}
                             <th>Latest Feedback</th>
                         </tr>
                     </thead>
@@ -217,7 +204,7 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
                             <tr key={intern.EmpID} onClick={() => showInternDetail(intern.EmpID)} style={{ cursor: 'pointer' }}>
                                 <td style={{ fontWeight: '600', color: 'var(--primary)' }}>{intern.Name}</td>
                                 <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{intern.EmpID}</td>
-                                {subjects.filter(s => !FIXED_SUBJECTS.map(f => f.name).includes(s.name)).map(s => {
+                                {subjects.map(s => {
                                     const score = (intern as any)[s.name] || 0;
                                     const weight = settings?.weightages?.[s.name];
                                     const contribution = weight ? ((score / s.total_marks) * weight).toFixed(1) : null;
@@ -243,39 +230,6 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
                                                 </div>
                                                 {contribution !== null && (
                                                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '600', opacity: 0.8 }}>
-                                                        +{contribution}% overall
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                    );
-                                })}
-                                {FIXED_SUBJECTS.map(s => {
-                                    const score = (intern as any)[s.name] || 0;
-                                    const weight = settings?.weightages?.[s.name];
-                                    const contribution = weight ? ((score / s.total_marks) * weight).toFixed(1) : null;
-
-                                    return (
-                                        <td key={s.name} onClick={e => e.stopPropagation()} style={{ background: `${s.color}02` }}>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    <input
-                                                        key={score}
-                                                        type="number"
-                                                        defaultValue={score}
-                                                        style={{ width: '50px', border: `1px solid ${s.color}40`, background: `${s.color}0a` }}
-                                                        onBlur={e => {
-                                                            const val = parseInt(e.target.value);
-                                                            if (!isNaN(val)) {
-                                                                handleUpdateScore(intern.EmpID, s.name, val, s.total_marks);
-                                                            }
-                                                        }}
-                                                        onFocus={e => e.target.select()}
-                                                    />
-                                                    <span style={{ fontSize: '0.8rem', color: s.color, fontWeight: '700' }}>/ {s.total_marks}</span>
-                                                </div>
-                                                {contribution !== null && (
-                                                    <div style={{ fontSize: '0.65rem', color: s.color, fontWeight: '600', opacity: 0.8 }}>
                                                         +{contribution}% overall
                                                     </div>
                                                 )}

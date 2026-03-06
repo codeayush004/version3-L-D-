@@ -32,8 +32,8 @@ async def get_report(emp_id: str, manager_id: str, batch_id: str):
                 ]
             )
             ai_summary = completion.choices[0].message.content
-        except Exception as ai_err:
-            print(f"AI Summary Error: {ai_err}")
+        except Exception:
+            pass
 
         return {
             "intern": intern,

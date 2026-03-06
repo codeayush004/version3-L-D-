@@ -14,13 +14,7 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
         passing_score: 60,
         recommended_score: 85,
         borderline_score: 65,
-        weightages: {
-            "Assessment": 20,
-            "Assignment": 20,
-            "Tech Viva": 20,
-            "Tech Demo": 20,
-            "Final Review": 20
-        }
+        weightages: {}
     });
 
     useEffect(() => {

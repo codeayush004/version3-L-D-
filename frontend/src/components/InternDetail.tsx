@@ -123,10 +123,6 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
     const ragColor = getRAGColor(averagePerformance);
     const ragLabel = getRAGLabel(averagePerformance);
 
-    const fteViva = scores['Tech Viva'] || 0;
-    const fteDemo = scores['Tech Demo'] || 0;
-    const scoreAssignment = scores['Assignment'] || 0;
-    const scoreAssessment = scores['Assessment'] || 0;
 
     return createPortal(
         <div id="dashboard-portal-root" className="modal-overlay" style={{
@@ -201,25 +197,19 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                                 <Award size={20} style={{ color: ragColor }} /> FTE Assessment Report
                             </h3>
                             <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem' }}>
-                                <div>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Assessment</p>
-                                    <p style={{ fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>{scoreAssessment}%</p>
-                                </div>
-                                <div style={{ width: '1px', background: 'var(--border)' }} />
-                                <div>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Assignment</p>
-                                    <p style={{ fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>{scoreAssignment}%</p>
-                                </div>
-                                <div style={{ width: '1px', background: 'var(--border)' }} />
-                                <div>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tech Viva</p>
-                                    <p style={{ fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>{fteViva}%</p>
-                                </div>
-                                <div style={{ width: '1px', background: 'var(--border)' }} />
-                                <div>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tech Demo</p>
-                                    <p style={{ fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>{fteDemo}%</p>
-                                </div>
+                                {subjects.map((s: any, idx: number) => {
+                                    const sName = typeof s === 'string' ? s : s.name;
+                                    const sScore = scores[sName] || 0;
+                                    return (
+                                        <React.Fragment key={sName}>
+                                            {idx > 0 && <div style={{ width: '1px', background: 'var(--border)' }} />}
+                                            <div>
+                                                <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sName}</p>
+                                                <p style={{ fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>{sScore}%</p>
+                                            </div>
+                                        </React.Fragment>
+                                    );
+                                })}
                             </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>

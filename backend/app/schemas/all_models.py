@@ -8,6 +8,7 @@ class AuthModel(BaseModel):
 class BatchModel(BaseModel):
     name: str
     manager_id: str
+    department: str = "Data Ops"
 
 class InternModel(BaseModel):
     Name: str

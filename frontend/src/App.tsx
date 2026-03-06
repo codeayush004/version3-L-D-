@@ -21,6 +21,7 @@ function App() {
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newBatchName, setNewBatchName] = useState('');
+  const [activeDepartment, setActiveDepartment] = useState<'Data Ops' | 'Data Engineering'>('Data Ops');
   const [isCreatingBatch, setIsCreatingBatch] = useState(false);
   const [isDeletingBatch, setIsDeletingBatch] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -40,7 +41,7 @@ function App() {
   const fetchBatches = async () => {
     if (!manager) return;
     try {
-      const res = await axios.get(`http://localhost:5000/api/batches?manager_id=${manager.manager_id}`);
+      const res = await axios.get(`http://localhost:5000/api/batches?manager_id=${manager.manager_id}&department=${activeDepartment}`);
       setBatches(res.data);
       if (!activeBatch && res.data.length > 0) {
         setActiveBatch(res.data[0]);
@@ -77,12 +78,13 @@ function App() {
     try {
       const res = await axios.post('http://localhost:5000/api/batches', {
         name: newBatchName,
-        manager_id: manager.manager_id
+        manager_id: manager.manager_id,
+        department: activeDepartment
       });
       setNewBatchName('');
       setShowBatchModal(false);
 
-      const batchesRes = await axios.get(`http://localhost:5000/api/batches?manager_id=${manager.manager_id}`);
+      const batchesRes = await axios.get(`http://localhost:5000/api/batches?manager_id=${manager.manager_id}&department=${activeDepartment}`);
       setBatches(batchesRes.data);
 
       const newlyCreated = batchesRes.data.find((b: any) => b.batch_id === res.data.batch_id);
@@ -120,9 +122,12 @@ function App() {
 
   useEffect(() => {
     if (manager) {
+      setActiveBatch(null); // Clear context when switching portals
+      setData([]);
+      setSubjects([]);
       fetchBatches();
     }
-  }, [manager]);
+  }, [manager, activeDepartment]);
 
   useEffect(() => {
     if (manager && activeBatch) {
@@ -184,7 +189,32 @@ function App() {
     <div className="app-container">
       <div className="sidebar">
         <div>
-          <h1>L&D Portal</h1>
+          <h1 style={{ marginBottom: '0.5rem' }}>L&D Portal</h1>
+
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.3rem', borderRadius: '0.75rem', display: 'flex', gap: '0.3rem', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
+            <button
+              onClick={() => setActiveDepartment('Data Ops')}
+              style={{
+                flex: 1, padding: '0.5rem', borderRadius: '0.5rem', border: 'none', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s',
+                background: activeDepartment === 'Data Ops' ? 'var(--primary)' : 'transparent',
+                color: activeDepartment === 'Data Ops' ? 'white' : 'var(--text-muted)',
+                boxShadow: activeDepartment === 'Data Ops' ? '0 2px 8px rgba(99,102,241,0.3)' : 'none'
+              }}
+            >
+              Data Ops
+            </button>
+            <button
+              onClick={() => setActiveDepartment('Data Engineering')}
+              style={{
+                flex: 1, padding: '0.5rem', borderRadius: '0.5rem', border: 'none', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s',
+                background: activeDepartment === 'Data Engineering' ? 'var(--secondary)' : 'transparent',
+                color: activeDepartment === 'Data Engineering' ? 'white' : 'var(--text-muted)',
+                boxShadow: activeDepartment === 'Data Engineering' ? '0 2px 8px rgba(52,211,153,0.3)' : 'none'
+              }}
+            >
+              DE Track
+            </button>
+          </div>
 
           <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
@@ -203,7 +233,11 @@ function App() {
                 style={{ flex: 1, padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', color: 'white', fontWeight: '600' }}
               >
                 <option value="">-- Choose Batch --</option>
-                {batches.map(b => <option key={b.batch_id} value={b.batch_id}>{b.name}</option>)}
+                {batches.map(b => (
+                  <option key={b.batch_id} value={b.batch_id}>
+                    {b.name}
+                  </option>
+                ))}
               </select>
               {activeBatch && (
                 <button
@@ -256,7 +290,7 @@ function App() {
 
       <main className="main-content">
         {activeTab === 'global' ? (
-          <GlobalDashboard managerId={manager.manager_id} />
+          <GlobalDashboard managerId={manager.manager_id} activeDepartment={activeDepartment} />
         ) : !activeBatch ? (
           <div className="card" style={{ textAlign: 'center', marginTop: '10rem', background: 'rgba(99, 102, 241, 0.05)', borderStyle: 'dashed' }}>
             <BookOpen size={48} style={{ color: 'var(--primary)', marginBottom: '1.5rem', opacity: 0.5 }} />
@@ -354,13 +388,14 @@ function App() {
                 <label style={{ textAlign: 'left', display: 'block' }}>Batch Identifier</label>
                 <input
                   type="text"
-                  placeholder="e.g. Q1 Training 2024"
+                  placeholder={`e.g. Q1 ${activeDepartment} 2024`}
                   value={newBatchName}
                   onChange={e => setNewBatchName(e.target.value)}
                   autoFocus
                   required
                 />
               </div>
+
               <div style={{ display: 'flex', gap: '1rem', marginTop: '2.5rem' }}>
                 <button className="btn" type="submit" style={{ flex: 1, padding: '1rem' }} disabled={isCreatingBatch}>
                   {isCreatingBatch ? 'Initializing...' : 'Initialize Batch'}
