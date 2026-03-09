@@ -52,7 +52,7 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <div className="card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(30, 41, 59, 0) 100%)' }}>
+            <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(30, 41, 59, 0) 100%)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ background: 'var(--primary)', padding: '0.75rem', borderRadius: '1rem', color: 'white' }}>
                         <ShieldCheck size={24} />
@@ -121,21 +121,23 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
                         {Object.keys(settings.weightages).map(key => (
                             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.02)', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
                                 <span style={{ flex: 1, fontSize: '0.9rem', fontWeight: '600' }}>{key}</span>
-                                <input
-                                    type="number"
-                                    value={settings.weightages[key]}
-                                    onChange={(e) => {
-                                        const newWeightages = { ...settings.weightages, [key]: parseInt(e.target.value) || 0 };
-                                        setSettings({ ...settings, weightages: newWeightages });
-                                    }}
-                                    style={{ width: '60px', padding: '0.4rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'transparent', color: 'white', textAlign: 'center' }}
-                                />
-                                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>%</span>
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                    <input
+                                        type="number"
+                                        value={settings.weightages[key]}
+                                        onChange={(e) => {
+                                            const newWeightages = { ...settings.weightages, [key]: parseInt(e.target.value) || 0 };
+                                            setSettings({ ...settings, weightages: newWeightages });
+                                        }}
+                                        style={{ width: '70px', padding: '0.4rem 1.4rem 0.4rem 0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'transparent', color: 'white', textAlign: 'center' }}
+                                    />
+                                    <span style={{ position: 'absolute', right: '0.6rem', color: 'var(--text-muted)', fontSize: '0.75rem', pointerEvents: 'none' }}>%</span>
+                                </div>
                             </div>
                         ))}
                     </div>
 
-                    <div style={{ marginTop: '1.5rem', padding: '1rem', borderRadius: '0.75rem', background: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.1)' }}>
+                    <div style={{ marginTop: '1.5rem', padding: '1rem', borderRadius: '0.75rem', background: 'rgba(147, 51, 234, 0.05)', border: '1px solid rgba(147, 51, 234, 0.1)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Total Configured</span>
                             <span style={{ fontSize: '1.2rem', fontWeight: '900', color: (Object.values(settings.weightages).reduce((a: any, b: any) => a + b, 0) as number) === 100 ? 'var(--secondary)' : '#ef4444' }}>

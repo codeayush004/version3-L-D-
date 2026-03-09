@@ -65,7 +65,7 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
 
     if (!data) return null;
 
-    const { intern, scores, subjects } = data;
+    const { intern, scores, subjects, rank, total_interns } = data;
 
     let finalScore = 0;
     let oldStyleTotalS = 0;
@@ -149,31 +149,49 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                 borderRadius: '1.5rem',
                 border: '1px solid var(--border)'
             }}>
-                {/* Header Section - Even More Compact */}
-                <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #4338ca 100%)', padding: '1.25rem 2rem', position: 'relative' }}>
+                {/* Header Section - Premium Layout */}
+                <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #581c87 100%)', padding: '2.5rem 6rem 2.5rem 2.5rem', position: 'relative', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                     <button
                         onClick={onClose}
-                        style={{ position: 'absolute', top: '0.75rem', right: '1rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.4rem', borderRadius: '50%', cursor: 'pointer', transition: 'background 0.2s' }}
+                        style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.6rem', borderRadius: '50%', cursor: 'pointer', transition: 'all 0.3s', backdropFilter: 'blur(8px)' }}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                     >
-                        <X size={18} />
+                        <X size={20} />
                     </button>
 
-                    <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                        <div style={{ width: '60px', height: '60px', borderRadius: '1rem', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', fontWeight: '800', color: 'white', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.3)' }}>
+                    <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+                        {/* Avatar */}
+                        <div style={{ width: '70px', height: '70px', borderRadius: '1.25rem', background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem', fontWeight: '800', color: 'white', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
                             {intern.Name.charAt(0)}
                         </div>
+
+                        {/* Identification */}
                         <div>
-                            <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'white', marginBottom: '0.1rem', letterSpacing: '-0.02em' }}>{intern.Name}</h1>
-                            <div style={{ display: 'flex', gap: '1.25rem', color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Hash size={14} /> {intern.EmpID}</span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Mail size={14} /> {intern.Email}</span>
+                            <h1 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '0.2rem', letterSpacing: '-0.02em', textShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>{intern.Name}</h1>
+                            <div style={{ display: 'flex', gap: '1.5rem', color: 'rgba(255,255,255,0.85)', fontSize: '0.85rem', fontWeight: '500' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Hash size={16} /> {intern.EmpID}</span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Mail size={16} /> {intern.Email}</span>
                             </div>
                         </div>
-                        <div style={{ marginLeft: 'auto', textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.6)', marginBottom: '0.15rem', fontWeight: '700' }}>Overall Performance</div>
-                            <div style={{ fontSize: '2.8rem', fontWeight: '950', color: 'white', lineHeight: '1' }}>{averagePerformance}%</div>
-                            <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.25rem', maxWidth: '180px' }}>
-                                (Average across all subjects)
+
+                        {/* Metrics Block */}
+                        <div style={{ marginLeft: 'auto', display: 'flex', gap: '2.5rem', alignItems: 'center' }}>
+                            {/* Cohort Rank */}
+                            {rank && (
+                                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', borderRight: '1px solid rgba(255,255,255,0.2)', paddingRight: '2.5rem' }}>
+                                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.7)', marginBottom: '0.25rem', fontWeight: '700' }}>Cohort Rank</div>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+                                        <span style={{ fontSize: '2.5rem', fontWeight: '900', color: '#38bdf8', lineHeight: '1', textShadow: '0 4px 15px rgba(56,189,248,0.4)' }}>#{rank}</span>
+                                        <span style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.6)', fontWeight: '700' }}>/ {total_interns}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Overall Score */}
+                            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.7)', marginBottom: '0.25rem', fontWeight: '700' }}>Overall Score</div>
+                                <div style={{ fontSize: '3.2rem', fontWeight: '900', color: 'white', lineHeight: '1', textShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>{averagePerformance}%</div>
                             </div>
                         </div>
                     </div>
@@ -186,33 +204,43 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                         background: `linear-gradient(135deg, ${ragColor}10 0%, rgba(30, 41, 59, 0) 100%)`,
                         border: `1px solid ${ragColor}30`,
                         margin: 0,
-                        padding: '1.5rem',
+                        padding: '2rem 1.5rem',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        boxShadow: `0 10px 30px -10px ${ragColor}20`
+                        boxShadow: `0 10px 30px -10px ${ragColor}20`,
+                        flexShrink: 0,
+                        WebkitBoxAlign: 'center'
                     }}>
-                        <div>
-                            <h3 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>
+                        <div style={{ flex: 1, paddingRight: '2.5rem' }}>
+                            <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>
                                 <Award size={20} style={{ color: ragColor }} /> FTE Assessment Report
                             </h3>
-                            <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem' }}>
-                                {subjects.map((s: any, idx: number) => {
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1.5rem 1rem' }}>
+                                {subjects.map((s: any) => {
                                     const sName = typeof s === 'string' ? s : s.name;
                                     const sScore = scores[sName] || 0;
                                     return (
-                                        <React.Fragment key={sName}>
-                                            {idx > 0 && <div style={{ width: '1px', background: 'var(--border)' }} />}
-                                            <div>
-                                                <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sName}</p>
-                                                <p style={{ fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>{sScore}%</p>
+                                        <div key={sName} style={{
+                                            background: 'rgba(255,255,255,0.03)',
+                                            padding: '0.85rem',
+                                            borderRadius: '0.75rem',
+                                            border: '1px solid rgba(255,255,255,0.05)',
+                                            position: 'relative',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '3px', background: ragColor, opacity: 0.5 }} />
+                                            <p style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.25rem' }} title={sName}>{sName}</p>
+                                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                                                <span style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', lineHeight: '1' }}>{sScore}</span>
+                                                <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', fontWeight: '600' }}>/ 100</span>
                                             </div>
-                                        </React.Fragment>
+                                        </div>
                                     );
                                 })}
                             </div>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
+                        <div style={{ textAlign: 'right', minWidth: '180px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center' }}>
                             <div style={{
                                 background: `${ragColor}20`,
                                 color: ragColor,
@@ -232,8 +260,8 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem' }}>
-                        <div className="card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', margin: 0, padding: '1.5rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)', gap: '2rem', flexShrink: 0 }}>
+                        <div className="card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', margin: 0, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                             <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700' }}>
                                 <TrendingUp size={20} className="text-primary" /> Skill Proficiency Radar
                             </h3>
@@ -259,7 +287,7 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                             </div>
                         </div>
 
-                        <div className="card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', margin: 0, padding: '1.5rem' }}>
+                        <div className="card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', margin: 0, padding: '1.5rem', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
                             <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700' }}>
                                 <Award size={20} className="text-secondary" /> Performance Trends
                             </h3>
@@ -281,7 +309,7 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                     </div>
 
                     {/* AI Insights Section */}
-                    <div className="card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(30, 41, 59, 0) 100%)', border: '1px solid rgba(99, 102, 241, 0.2)', margin: 0, padding: '1.5rem' }}>
+                    <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(30, 41, 59, 0) 100%)', border: '1px solid rgba(147, 51, 234, 0.2)', margin: 0, padding: '1.5rem', flexShrink: 0 }}>
                         <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700', color: 'var(--primary)' }}>
                             <Sparkles size={20} /> AI Performance Insights
                         </h3>

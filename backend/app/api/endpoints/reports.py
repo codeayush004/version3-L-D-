@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.core.database import interns_collection, scores_collection, feedback_collection, subjects_collection
+from app.core.database import interns_collection, scores_collection, feedback_collection, subjects_collection, settings_collection
 import os
 import json
 from groq import Groq
@@ -35,12 +35,48 @@ async def get_report(emp_id: str, manager_id: str, batch_id: str):
         except Exception:
             pass
 
+        settings = settings_collection.find_one({'manager_id': manager_id, 'batch_id': batch_id})
+        weightages = settings.get('weightages', {}) if settings else {}
+        
+        all_scores_docs = list(scores_collection.find({'manager_id': manager_id, 'batch_id': batch_id}))
+        
+        def calculate_score(s_doc):
+            total = 0
+            s_map = s_doc.get('scores', {})
+            if weightages:
+                for subj in subjects_list:
+                    sName = subj['name'] if isinstance(subj, dict) else subj
+                    sTotal = subj['total_marks'] if isinstance(subj, dict) else 100
+                    w = weightages.get(sName)
+                    if w:
+                        total += (s_map.get(sName, 0) / sTotal) * w
+            else:
+                for subj in subjects_list:
+                    sName = subj['name'] if isinstance(subj, dict) else subj
+                    total += s_map.get(sName, 0)
+            return total
+
+        intern_totals = []
+        for doc in all_scores_docs:
+            intern_totals.append({'EmpID': doc.get('EmpID'), 'total': calculate_score(doc)})
+        
+        intern_totals.sort(key=lambda x: x['total'], reverse=True)
+        
+        rank = 1
+        for idx, item in enumerate(intern_totals):
+            if item['EmpID'] == emp_id:
+                rank = idx + 1
+                break
+        total_interns = len(intern_totals)
+
         return {
             "intern": intern,
             "scores": score_map,
             "feedbacks": feedbacks,
             "subjects": subjects_list,
-            "ai_summary": ai_summary
+            "ai_summary": ai_summary,
+            "rank": rank,
+            "total_interns": total_interns
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

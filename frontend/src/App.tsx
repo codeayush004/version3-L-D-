@@ -221,7 +221,7 @@ function App() {
               <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700' }}>Workspace Context</p>
               <button
                 onClick={() => setShowBatchModal(true)}
-                style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.2)', color: 'var(--primary)', padding: '0.2rem 0.5rem', borderRadius: '0.4rem', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer' }}
+                style={{ background: 'rgba(147, 51, 234, 0.1)', border: '1px solid rgba(147, 51, 234, 0.2)', color: 'var(--primary)', padding: '0.2rem 0.5rem', borderRadius: '0.4rem', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer' }}
               >
                 + NEW BATCH
               </button>
@@ -292,7 +292,7 @@ function App() {
         {activeTab === 'global' ? (
           <GlobalDashboard managerId={manager.manager_id} activeDepartment={activeDepartment} />
         ) : !activeBatch ? (
-          <div className="card" style={{ textAlign: 'center', marginTop: '10rem', background: 'rgba(99, 102, 241, 0.05)', borderStyle: 'dashed' }}>
+          <div className="card" style={{ textAlign: 'center', marginTop: '10rem', background: 'rgba(147, 51, 234, 0.05)', borderStyle: 'dashed' }}>
             <BookOpen size={48} style={{ color: 'var(--primary)', marginBottom: '1.5rem', opacity: 0.5 }} />
             <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>No Active Workspace</h2>
             <p style={{ color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto 1.5rem' }}>Switch context by selecting an existing batch or create a new one to start managing performance.</p>
@@ -343,7 +343,7 @@ function App() {
                   </div>
                 </div>
 
-                <div className="card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(30, 41, 59, 0) 100%)', marginBottom: '2rem' }}>
+                <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(30, 41, 59, 0) 100%)', marginBottom: '2rem' }}>
                   <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>Batch Scope: {activeBatch.name}</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '600px' }}>
                     You are currently viewing data for the selected batch. Use the tabs to manage interns, scores, and access AI-driven performance insights.

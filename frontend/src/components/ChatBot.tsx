@@ -39,7 +39,7 @@ const ChatBot: React.FC<Props> = ({ managerId, batchId }) => {
     return (
         <div className="card" style={{ height: '600px', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-                <div style={{ background: 'var(--primary)', padding: '0.5rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(99, 102, 241, 0.3)' }}>
+                <div style={{ background: 'var(--primary)', padding: '0.5rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(147, 51, 234, 0.3)' }}>
                     <Bot size={20} color="white" />
                 </div>
                 <div>

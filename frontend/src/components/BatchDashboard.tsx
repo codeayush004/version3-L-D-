@@ -110,7 +110,7 @@ const BatchDashboard: React.FC<Props> = ({ data, subjects, batchName, managerId,
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-                <div className="card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(30, 41, 59, 0))' }}>
+                <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(30, 41, 59, 0))' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--primary)', marginBottom: '1rem' }}>
                         <TrendingUp size={20} />
                         <span style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Batch Average</span>
@@ -195,9 +195,9 @@ const BatchDashboard: React.FC<Props> = ({ data, subjects, batchName, managerId,
                 </div>
             </div>
 
-            <div className="card" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', background: 'linear-gradient(to right, rgba(99, 102, 241, 0.05), transparent)', padding: '2rem' }}>
+            <div className="card" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', background: 'linear-gradient(to right, rgba(147, 51, 234, 0.05), transparent)', padding: '2rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <div style={{ background: 'rgba(99, 102, 241, 0.1)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ background: 'rgba(147, 51, 234, 0.1)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <BookOpen size={32} color="var(--primary)" />
                     </div>
                     <div>
