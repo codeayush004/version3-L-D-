@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Save, RefreshCw, ShieldCheck, Percent } from 'lucide-react';
+import { Save, RefreshCw } from 'lucide-react';
 
 interface SettingsProps {
     managerId: string;
@@ -12,7 +12,7 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
     const [saving, setSaving] = useState(false);
     const [settings, setSettings] = useState<any>({
         passing_score: 60,
-        recommended_score: 85,
+        recommended_score: 75,
         borderline_score: 65,
         weightages: {}
     });
@@ -52,69 +52,64 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(30, 41, 59, 0) 100%)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ background: 'var(--primary)', padding: '0.75rem', borderRadius: '1rem', color: 'white' }}>
-                        <ShieldCheck size={24} />
-                    </div>
-                    <div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Threshold Configuration</h2>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Set performance limits and scoring weightages for automated analysis</p>
-                    </div>
-                </div>
+            <div style={{ padding: '0.5rem 0' }}>
+                <h2 style={{ fontSize: '1.75rem', fontWeight: '900', letterSpacing: '-0.02em' }}>Grading Rules</h2>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem' }}>
                 <div className="card">
-                    <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700' }}>
-                        <ShieldCheck size={20} className="text-secondary" /> Recommendation Thresholds
+                    <h3 style={{ marginBottom: '2rem', fontSize: '1rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
+                        Performance Levels
                     </h3>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                        <div className="input-group">
-                            <label style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span>Highly Recommended (FTE)</span>
-                                <span style={{ color: 'var(--secondary)', fontWeight: '700' }}>{settings.recommended_score}%</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                        {/* Green Zone */}
+                        <div className="input-group" style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '1.25rem', borderRadius: '1rem', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
+                            <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                                <span style={{ color: '#10b981', fontWeight: '800', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>Green Zone (Highly Recommended)</span>
+                                <span style={{ color: '#10b981', fontWeight: '800', fontSize: '1.1rem' }}>{settings.recommended_score}% - 100%</span>
                             </label>
                             <input
                                 type="range"
                                 min="0" max="100"
                                 value={settings.recommended_score}
                                 onChange={(e) => setSettings({ ...settings, recommended_score: parseInt(e.target.value) })}
-                                style={{ width: '100%' }}
+                                style={{ width: '100%', accentColor: '#10b981', cursor: 'pointer' }}
                             />
                         </div>
 
-                        <div className="input-group" style={{ opacity: 0.8, background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.75rem', border: '1px dashed var(--border)' }}>
-                            <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                <span>Borderline Zone (Auto-Calculated)</span>
-                                <span style={{ color: '#fbbf24', fontWeight: '700' }}>{settings.passing_score + 1}% - {Math.max(settings.passing_score + 1, settings.recommended_score - 1)}%</span>
-                            </label>
-                            <div style={{ width: '100%', height: '8px', background: 'linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #10b981 100%)', borderRadius: '4px', opacity: 0.5, marginTop: '0.5rem' }}></div>
-                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.75rem', lineHeight: '1.4' }}>
-                                Interns scoring strictly above the Redline and below the Recommended line are placed in the Yellow zone.
-                            </p>
+                        {/* Yellow Zone */}
+                        <div style={{ textAlign: 'center', padding: '0.5rem', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '0.75rem', border: '1px dashed rgba(251, 191, 36, 0.3)' }}>
+                            <span style={{ color: '#fbbf24', fontWeight: '800', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em' }}>Yellow Zone (Borderline)</span>
+                            <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'white', marginTop: '0.25rem' }}>
+                                {settings.passing_score + 1}% - {settings.recommended_score - 1}%
+                            </div>
                         </div>
 
-                        <div className="input-group">
-                            <label style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span>Passing Score (Redline)</span>
-                                <span style={{ color: '#ef4444', fontWeight: '700' }}>{settings.passing_score}%</span>
+                        {/* Red Zone */}
+                        <div className="input-group" style={{ background: 'rgba(239, 68, 68, 0.05)', padding: '1.25rem', borderRadius: '1rem', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
+                            <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                                <span style={{ color: '#ef4444', fontWeight: '800', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>Red Zone (Needs Attention)</span>
+                                <span style={{ color: '#ef4444', fontWeight: '800', fontSize: '1.1rem' }}>0% - {settings.passing_score}%</span>
                             </label>
                             <input
                                 type="range"
                                 min="0" max="100"
                                 value={settings.passing_score}
                                 onChange={(e) => setSettings({ ...settings, passing_score: parseInt(e.target.value) })}
-                                style={{ width: '100%' }}
+                                style={{ width: '100%', accentColor: '#ef4444', cursor: 'grab' }}
                             />
                         </div>
+
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textAlign: 'center', opacity: 0.6 }}>
+                            * Adjust sliders to define boundaries for automated recommendations.
+                        </p>
                     </div>
                 </div>
 
                 <div className="card">
-                    <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700' }}>
-                        <Percent size={20} className="text-primary" /> Scoring Weightage
+                    <h3 style={{ marginBottom: '2rem', fontSize: '1rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
+                        Subject Weights
                     </h3>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -139,7 +134,7 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
 
                     <div style={{ marginTop: '1.5rem', padding: '1rem', borderRadius: '0.75rem', background: 'rgba(147, 51, 234, 0.05)', border: '1px solid rgba(147, 51, 234, 0.1)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Total Configured</span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Total Weightage</span>
                             <span style={{ fontSize: '1.2rem', fontWeight: '900', color: (Object.values(settings.weightages).reduce((a: any, b: any) => a + b, 0) as number) === 100 ? 'var(--secondary)' : '#ef4444' }}>
                                 {(Object.values(settings.weightages).reduce((a: any, b: any) => a + b, 0) as number)}%
                             </span>
@@ -161,10 +156,10 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
                     onClick={handleSave}
                     disabled={saving}
                 >
-                    <Save size={18} style={{ marginRight: '0.5rem' }} /> {saving ? 'Saving...' : 'Apply Changes'}
+                    <Save size={18} style={{ marginRight: '0.5rem' }} /> {saving ? 'Saving...' : 'Save'}
                 </button>
             </div>
-        </div>
+        </div >
     );
 };
 

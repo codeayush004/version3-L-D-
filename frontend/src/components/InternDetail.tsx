@@ -16,11 +16,6 @@ import {
     PolarAngleAxis,
     PolarRadiusAxis,
     ResponsiveContainer,
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
     Tooltip
 } from 'recharts';
 
@@ -170,7 +165,7 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                         <div>
                             <h1 style={{ fontSize: '2rem', fontWeight: '900', color: 'white', marginBottom: '0.2rem', letterSpacing: '-0.02em', textShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>{intern.Name}</h1>
                             <div style={{ display: 'flex', gap: '1.5rem', color: 'rgba(255,255,255,0.85)', fontSize: '0.85rem', fontWeight: '500' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Hash size={16} /> {intern.EmpID}</span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Hash size={16} /> INT ID: {intern.EmpID}</span>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Mail size={16} /> {intern.Email}</span>
                             </div>
                         </div>
@@ -180,7 +175,7 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                             {/* Cohort Rank */}
                             {rank && (
                                 <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', borderRight: '1px solid rgba(255,255,255,0.2)', paddingRight: '2.5rem' }}>
-                                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.7)', marginBottom: '0.25rem', fontWeight: '700' }}>Cohort Rank</div>
+                                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.7)', marginBottom: '0.25rem', fontWeight: '700' }}>Batch Rank</div>
                                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
                                         <span style={{ fontSize: '2.5rem', fontWeight: '900', color: '#38bdf8', lineHeight: '1', textShadow: '0 4px 15px rgba(56,189,248,0.4)' }}>#{rank}</span>
                                         <span style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.6)', fontWeight: '700' }}>/ {total_interns}</span>
@@ -214,7 +209,7 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                     }}>
                         <div style={{ flex: 1, paddingRight: '2.5rem' }}>
                             <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>
-                                <Award size={20} style={{ color: ragColor }} /> FTE Assessment Report
+                                <Award size={20} style={{ color: ragColor }} /> Performance
                             </h3>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1.5rem 1rem' }}>
                                 {subjects.map((s: any) => {
@@ -256,55 +251,33 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                                 {ragLabel}
                             </div>
                             <div style={{ fontSize: '2.5rem', fontWeight: '900', color: ragColor, lineHeight: '1' }}>{averagePerformance}%</div>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginTop: '0.25rem' }}>Overall Threshold Eval</p>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginTop: '0.25rem' }}>Final Grade Assessment</p>
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)', gap: '2rem', flexShrink: 0 }}>
-                        <div className="card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', margin: 0, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-                            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700' }}>
-                                <TrendingUp size={20} className="text-primary" /> Skill Proficiency Radar
-                            </h3>
-                            <div style={{ width: '100%', height: '350px' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-                                        <PolarGrid stroke="rgba(255,255,255,0.05)" />
-                                        <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                        <Radar
-                                            name="Score"
-                                            dataKey="percentage"
-                                            stroke="var(--primary)"
-                                            fill="var(--primary)"
-                                            fillOpacity={0.6}
-                                        />
-                                        <Tooltip
-                                            contentStyle={{ background: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }}
-                                            itemStyle={{ color: '#fff' }}
-                                        />
-                                    </RadarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                        <div className="card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', margin: 0, padding: '1.5rem', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700' }}>
-                                <Award size={20} className="text-secondary" /> Performance Trends
-                            </h3>
-                            <div style={{ width: '100%', height: '350px' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={chartData}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                                        <XAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} />
-                                        <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} domain={[0, 100]} />
-                                        <Tooltip
-                                            cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                                            contentStyle={{ background: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }}
-                                        />
-                                        <Bar dataKey="percentage" fill="var(--secondary)" radius={[4, 4, 0, 0]} barSize={35} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
+                    <div className="card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', margin: 0, padding: '2rem', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+                        <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.2rem', fontWeight: '800' }}>
+                            <TrendingUp size={24} className="text-primary" /> Skill Balance
+                        </h3>
+                        <div style={{ width: '100%', height: '400px' }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
+                                    <PolarGrid stroke="rgba(255,255,255,0.05)" />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
+                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                    <Radar
+                                        name="Score"
+                                        dataKey="percentage"
+                                        stroke="var(--primary)"
+                                        fill="var(--primary)"
+                                        fillOpacity={0.6}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ background: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }}
+                                        itemStyle={{ color: '#fff' }}
+                                    />
+                                </RadarChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
 
@@ -323,9 +296,6 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                 <div style={{ padding: '1rem 2rem', borderTop: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                     <button className="btn" onClick={onClose} style={{ background: 'transparent', border: '1px solid var(--border)', padding: '0.5rem 1.25rem', fontSize: '0.8rem' }}>
                         Return to Portal
-                    </button>
-                    <button className="btn" onClick={() => window.print()} style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem' }}>
-                        Export PDF
                     </button>
                 </div>
             </div>

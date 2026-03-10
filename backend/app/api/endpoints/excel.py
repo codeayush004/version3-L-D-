@@ -20,9 +20,20 @@ async def upload_interns(
         contents = await file.read()
         df = pd.read_excel(io.BytesIO(contents))
         
+        # Alias variations of INT ID and EmpID to strict 'EmpID'
+        df.columns = df.columns.astype(str).str.strip()
+        col_map = {}
+        for c in df.columns:
+            clean_c = str(c).lower().replace(' ', '')
+            if clean_c in ['empid', 'intid', 'employeeid']:
+                col_map[c] = 'EmpID'
+        
+        if col_map:
+            df.rename(columns=col_map, inplace=True)
+            
         required_bio = ['Name', 'Email', 'EmpID']
         if not all(col in df.columns for col in required_bio):
-            raise HTTPException(status_code=400, detail=f"Excel must at least contain: {required_bio}")
+            raise HTTPException(status_code=400, detail=f"Excel must at least contain: {required_bio} (or a variation like 'INT ID')")
         
         subj_doc = subjects_collection.find_one({'manager_id': manager_id, 'batch_id': batch_id})
         raw_existing = []
@@ -140,6 +151,8 @@ async def upload_interns(
                         )
                 
         return {"message": "Success"}
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -155,7 +168,7 @@ async def export_scores(manager_id: str, batch_id: str):
         
         export_data = []
         for intern in interns:
-            row = {'Name': intern['Name'], 'EmpID': intern['EmpID'], 'Email': intern['Email']}
+            row = {'Name': intern['Name'], 'INT ID': intern['EmpID'], 'Email': intern['Email']}
             intern_scores = scores_map.get(intern['EmpID'], {})
             for s in subjects_list:
                 s_name = s['name'] if isinstance(s, dict) else s

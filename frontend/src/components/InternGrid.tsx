@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, Edit2, Download, MessageSquare } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import InternDetail from './InternDetail';
-import FileUpload from './FileUpload';
 
 interface Intern {
     EmpID: string;
@@ -13,15 +12,11 @@ interface Intern {
 
 interface Props {
     data: Intern[];
-    onRefresh: () => void;
     managerId: string;
     batchId: string;
 }
 
-const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) => {
-    const [newSubject, setNewSubject] = useState('');
-    const [totalMarks, setTotalMarks] = useState<number>(100);
-    const [isAddingSubject, setIsAddingSubject] = useState(false);
+const InternGrid: React.FC<Props> = ({ data, managerId, batchId }) => {
     const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
     const [subjects, setSubjects] = useState<{ name: string, total_marks: number }[]>([]);
     const [settings, setSettings] = useState<any>(null);
@@ -44,71 +39,9 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
         fetchSubjectsAndSettings();
     }, [data, managerId, batchId]);
 
-    const handleUpdateScore = async (empId: string, subjectName: string, score: number, sTotal?: number) => {
-        try {
-            await axios.post('http://localhost:5000/api/update-score', {
-                EmpID: empId,
-                subject: subjectName,
-                score,
-                total_marks: sTotal,
-                manager_id: managerId,
-                batch_id: batchId
-            });
-            onRefresh();
-        } catch (error) {
-            console.error(error);
-        }
-    };
 
-    const handleExport = () => {
-        window.open(`http://localhost:5000/api/export-scores?manager_id=${managerId}&batch_id=${batchId}`);
-    };
 
-    const handleCreateSubject = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newSubject.trim()) return;
-        if (data.length > 0) {
-            // Register subject via first intern with 0 score
-            await handleUpdateScore(data[0].EmpID, newSubject.trim(), 0, totalMarks);
-            setNewSubject('');
-            setIsAddingSubject(false);
-            onRefresh();
-        } else {
-            alert("Please upload interns first!");
-        }
-    };
 
-    const handleDeleteSubject = async (subjectName: string) => {
-        if (!window.confirm(`Are you sure you want to delete "${subjectName}"? This will permanently remove all scores for this subject.`)) return;
-        try {
-            await axios.delete('http://localhost:5000/api/subjects', {
-                data: { subject: subjectName, manager_id: managerId, batch_id: batchId }
-            });
-            onRefresh();
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const handleEditSubject = async (subject: any) => {
-        const newName = window.prompt("Enter new subject name:", subject.name);
-        if (newName === null) return;
-        const newTotal = window.prompt("Enter total marks:", subject.total_marks.toString());
-        if (newTotal === null) return;
-
-        try {
-            await axios.put('http://localhost:5000/api/subjects', {
-                old_name: subject.name,
-                new_name: newName || subject.name,
-                total_marks: parseInt(newTotal) || subject.total_marks,
-                manager_id: managerId,
-                batch_id: batchId
-            });
-            onRefresh();
-        } catch (error) {
-            console.error(error);
-        }
-    };
 
     const showInternDetail = (empId: string) => {
         setSelectedInternId(empId);
@@ -118,50 +51,11 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
         <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', alignItems: 'center' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Performance Matrix</h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Track and manage objective performance across all subjects.</p>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Grade Sheet</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>View and manage scores for all subjects.</p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <button className="btn" onClick={handleExport} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)' }}>
-                        <Download size={18} /> Export
-                    </button>
-
-                    <FileUpload
-                        endpoint="upload-interns"
-                        label="Upload Scores/Feedback"
-                        onSuccess={onRefresh}
-                        managerId={managerId}
-                        batchId={batchId}
-                    />
-
-                    {!isAddingSubject ? (
-                        <button className="btn" onClick={() => setIsAddingSubject(true)}>
-                            <Plus size={18} /> New Column
-                        </button>
-                    ) : (
-                        <form onSubmit={handleCreateSubject} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '0.5rem', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
-                            <input
-                                className="subject-input"
-                                placeholder="Subject Name"
-                                value={newSubject}
-                                onChange={e => setNewSubject(e.target.value)}
-                                style={{ minWidth: '150px' }}
-                            />
-                            <input
-                                className="subject-input"
-                                type="number"
-                                placeholder="Total"
-                                title="Total Marks"
-                                value={totalMarks === 0 ? '' : totalMarks}
-                                onChange={e => setTotalMarks(parseInt(e.target.value) || 0)}
-                                style={{ width: '80px' }}
-                            />
-                            <button type="submit" className="btn" style={{ padding: '0.5rem 1rem' }}>Add</button>
-                            <button type="button" onClick={() => setIsAddingSubject(false)} className="btn" style={{ background: 'transparent', padding: '0.5rem' }}>Cancel</button>
-                        </form>
-                    )}
-                </div>
+                <div></div>
             </div>
 
             <div className="table-container">
@@ -169,7 +63,7 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
                     <thead>
                         <tr>
                             <th>Intern Name</th>
-                            <th>Emp ID</th>
+                            <th>INT ID</th>
                             {subjects.map(s => (
                                 <th key={s.name}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -177,26 +71,12 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
                                             <div style={{ color: 'var(--primary)' }}>{s.name}</div>
                                             <div style={{ fontSize: '0.6rem', opacity: 0.6 }}>Total: {s.total_marks}</div>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '0.25rem' }}>
-                                            <button
-                                                onClick={() => handleEditSubject(s)}
-                                                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem', borderRadius: '0.25rem' }}
-                                                title="Edit Subject"
-                                            >
-                                                <Edit2 size={12} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteSubject(s.name)}
-                                                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem', borderRadius: '0.25rem' }}
-                                                title="Delete Subject"
-                                            >
-                                                <Trash2 size={12} />
-                                            </button>
-                                        </div>
+
                                     </div>
                                 </th>
                             ))}
-                            <th>Latest Feedback</th>
+                            <th>Final Score</th>
+                            <th>Feedback</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -213,19 +93,7 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
                                         <td key={s.name} onClick={e => e.stopPropagation()}>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    <input
-                                                        key={score}
-                                                        type="number"
-                                                        defaultValue={score}
-                                                        style={{ width: '50px' }}
-                                                        onBlur={e => {
-                                                            const val = parseInt(e.target.value);
-                                                            if (!isNaN(val)) {
-                                                                handleUpdateScore(intern.EmpID, s.name, val, s.total_marks);
-                                                            }
-                                                        }}
-                                                        onFocus={e => e.target.select()}
-                                                    />
+                                                    <span style={{ fontWeight: '700', fontSize: '1.1rem', color: 'white' }}>{score}</span>
                                                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>/ {s.total_marks}</span>
                                                 </div>
                                                 {contribution !== null && (
@@ -237,6 +105,46 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
                                         </td>
                                     );
                                 })}
+                                {(() => {
+                                    let finalScore = 0;
+                                    let oldStyleTotalS = 0;
+                                    let oldStyleTotalM = 0;
+
+                                    subjects.forEach(s => {
+                                        const score = (intern as any)[s.name] || 0;
+                                        const weight = settings?.weightages?.[s.name];
+                                        if (weight) {
+                                            finalScore += (score / s.total_marks) * weight;
+                                        } else {
+                                            oldStyleTotalS += score;
+                                            oldStyleTotalM += s.total_marks;
+                                        }
+                                    });
+
+                                    let averagePerformance = 0;
+                                    if (settings && Object.keys(settings.weightages || {}).length > 0) {
+                                        averagePerformance = parseFloat(finalScore.toFixed(1));
+                                    } else {
+                                        averagePerformance = oldStyleTotalM > 0
+                                            ? parseFloat(((oldStyleTotalS / oldStyleTotalM) * 100).toFixed(1))
+                                            : 0;
+                                    }
+
+                                    let scoreColor = 'white';
+                                    if (settings) {
+                                        if (averagePerformance >= settings.recommended_score) scoreColor = '#10b981'; // Green
+                                        else if (averagePerformance > settings.passing_score) scoreColor = '#fbbf24'; // Yellow
+                                        else scoreColor = '#ef4444'; // Red
+                                    }
+
+                                    return (
+                                        <td>
+                                            <div style={{ fontSize: '1.2rem', fontWeight: '800', color: scoreColor }}>
+                                                {averagePerformance}%
+                                            </div>
+                                        </td>
+                                    );
+                                })()}
                                 <td style={{ maxWidth: '300px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                                         <MessageSquare size={14} style={{ flexShrink: 0 }} />
@@ -251,7 +159,7 @@ const InternGrid: React.FC<Props> = ({ data, onRefresh, managerId, batchId }) =>
                 </table>
                 {data.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                        No intern data available. Upload an Excel sheet to populate the matrix.
+                        No intern data available. Import an Excel sheet to populate the grade sheet.
                     </div>
                 )}
             </div>

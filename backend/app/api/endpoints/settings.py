@@ -8,7 +8,7 @@ class ThresholdSettings(BaseModel):
     manager_id: str
     batch_id: str
     passing_score: float = 60.0
-    recommended_score: float = 85.0
+    recommended_score: float = 75.0
     borderline_score: float = 65.0
     weightages: dict = {
         "Assessment": 25,
@@ -27,7 +27,7 @@ async def get_settings(manager_id: str, batch_id: str):
                 "manager_id": manager_id,
                 "batch_id": batch_id,
                 "passing_score": 60.0,
-                "recommended_score": 85.0,
+                "recommended_score": 75.0,
                 "borderline_score": 65.0,
                 "weightages": {
                     "Assessment": 25,

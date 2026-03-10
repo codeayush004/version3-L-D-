@@ -517,7 +517,9 @@ th:nth-child(2) {
   margin-bottom: 1rem;
   background: rgba(255, 255, 255, 0.02);
   border-radius: 0.5rem;
-  overflow: hidden;
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
   font-size: 0.85rem;
 }
 

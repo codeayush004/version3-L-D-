@@ -34,7 +34,7 @@ const FileUpload: React.FC<Props> = ({ endpoint, onSuccess, label, managerId, ba
 
     return (
         <div className="card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label} Action</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
             <input
                 type="file"
                 ref={fileInputRef}

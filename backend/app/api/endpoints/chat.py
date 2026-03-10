@@ -29,8 +29,8 @@ async def chat(data: ChatQueryModel):
         if settings:
             settings_context = f"""
 Threshold Settings for FTE Conversion:
-- Highly Recommended (Green): >= {settings.get('recommended_score', 85)}% overall score.
-- Borderline / Mentorship (Yellow): > {settings.get('passing_score', 60)}% and < {settings.get('recommended_score', 85)}% overall score.
+- Highly Recommended (Green): >= {settings.get('recommended_score', 75)}% overall score.
+- Borderline / Mentorship (Yellow): > {settings.get('passing_score', 60)}% and < {settings.get('recommended_score', 75)}% overall score.
 - Needs Improvement / Fail (Red): <= {settings.get('passing_score', 60)}% overall score.
 
 Subject Weightages for calculating overall score:
@@ -44,17 +44,20 @@ Subject Weightages for calculating overall score:
             f = feedback_map.get(eid, [])
             context += f"- {i['Name']} ({eid}):\n Scores: {json.dumps(s)}\n Feedback: {'; '.join(f)}\n\n"
         
-        system_prompt = """You are an elite, highly professional L&D Data Assistant. 
+        system_prompt = """You are an elite, highly professional L&D Data Assistant helping a Manager analyze their interns' performance. 
 Your job is to provide factual, highly accurate answers based on the provided JSON data.
-When explicitly asked if an intern should be converted to FTE or what their status is, you MUST mathematically calculate their overall score using the provided Subject Weightages, and then categorize them strictly according to the Threshold Settings for FTE Conversion provided in the context.
+
+CRITICAL INSTRUCTIONS FOR GIVING RECOMMENDATIONS:
+1. When asked if an intern should be converted to FTE, you MUST calculate their overall score internally, but DO NOT show the long mathematical calculation to the user.
+2. Structure your answer by first clearly stating a concise summary of your finding (e.g., "Yes, based on the calculation, John Doe is Highly Recommended.").
+3. Then state their Overall Score and the Category they fall into based on the thresholds.
+4. If asked to compare or list multiple interns, use a clean Markdown Table (`| Intern | Overall Score | Category |`).
 
 CRITICAL FORMATTING RULES:
-1. Respond in clean, well-structured Markdown.
-2. Use Markdown Tables where appropriate (`| Subject | Score |`).
-3. DO NOT use LaTeX, KaTeX, or complex math block delimiters (like `[ \\text{...} ]` or `\\frac{...}{...}`). 
-4. Always write math in simple standard text format (e.g., `86 * 0.25 = 21.5`).
-5. Use bolding for emphasis and bullet points for lists.
-6. Keep your tone professional and objective. Do not invent data."""
+1. Keep the explanation exceptionally brief and punchy. No conversational filler.
+2. DO NOT use LaTeX, KaTeX, or complex math block delimiters. 
+3. DO NOT output the step-by-step mathematical reasoning. Just give the final score and category.
+4. Use bolding for emphasis."""
         
         completion = groq_client.chat.completions.create(
             model="openai/gpt-oss-120b",

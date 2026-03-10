@@ -41,7 +41,7 @@ async def create_batch(data: BatchModel):
             'manager_id': data.manager_id,
             'batch_id': batch_id,
             'passing_score': 60.0,
-            'recommended_score': 85.0,
+            'recommended_score': 75.0,
             'borderline_score': 65.0,
             'weightages': {
                 "Capstone project": 20,
@@ -72,7 +72,7 @@ async def create_batch(data: BatchModel):
             'manager_id': data.manager_id,
             'batch_id': batch_id,
             'passing_score': 60.0,
-            'recommended_score': 85.0,
+            'recommended_score': 75.0,
             'borderline_score': 65.0,
             'weightages': {
                 "Assessment": 25,

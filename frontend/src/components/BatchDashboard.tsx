@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import axios from 'axios';
-import { TrendingUp, Award, BookOpen, Target, AlertCircle } from 'lucide-react';
+import { TrendingUp, Award, AlertCircle } from 'lucide-react';
 
 interface Intern {
     EmpID: string;
@@ -17,12 +17,11 @@ interface Subject {
 interface Props {
     data: Intern[];
     subjects: Subject[];
-    batchName: string;
     managerId: string;
     batchId: string;
 }
 
-const BatchDashboard: React.FC<Props> = ({ data, subjects, batchName, managerId, batchId }) => {
+const BatchDashboard: React.FC<Props> = ({ data, subjects, managerId, batchId }) => {
     const [settings, setSettings] = useState<any>(null);
 
     useEffect(() => {
@@ -119,35 +118,17 @@ const BatchDashboard: React.FC<Props> = ({ data, subjects, batchName, managerId,
                         <h3 style={{ fontSize: '3rem', fontWeight: '900', color: 'white', lineHeight: '1' }}>{stats.batchAverage}</h3>
                         <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--primary)' }}>%</span>
                     </div>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '1rem' }}>Overall performance across {stats.totalSubjects} modules</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '1rem' }}>Overall Performance</p>
                 </div>
 
-                <div className="card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--secondary)', marginBottom: '1rem' }}>
-                        <Target size={20} />
-                        <span style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Course Proficiency</span>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {stats.subjectStats.slice(0, 3).map(sub => (
-                            <div key={sub.name}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', fontSize: '0.75rem' }}>
-                                    <span style={{ color: 'white', fontWeight: '600' }}>{sub.name}</span>
-                                    <span style={{ color: 'var(--secondary)' }}>{sub.average.toFixed(0)}%</span>
-                                </div>
-                                <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
-                                    <div style={{ height: '100%', width: `${sub.average}%`, background: 'var(--secondary)', borderRadius: '2px' }} />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                 <div className="card" style={{ background: 'rgba(255,255,255,0.02)', margin: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                         <Award size={20} style={{ color: '#fbbf24' }} />
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: '700' }}>Elite Performers</h3>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: '700' }}>Top Ranked</h3>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {stats.topPerformers.map((intern, idx) => (
@@ -188,34 +169,14 @@ const BatchDashboard: React.FC<Props> = ({ data, subjects, batchName, managerId,
                             ))
                         ) : (
                             <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                All interns are performing above {stats.threshold}% threshold.
+                                All interns are performing above {stats.threshold}% passing score.
                             </div>
                         )}
                     </div>
                 </div>
             </div>
 
-            <div className="card" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', background: 'linear-gradient(to right, rgba(147, 51, 234, 0.05), transparent)', padding: '2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <div style={{ background: 'rgba(147, 51, 234, 0.1)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <BookOpen size={32} color="var(--primary)" />
-                    </div>
-                    <div>
-                        <h4 style={{ fontWeight: '800', fontSize: '1.5rem', marginBottom: '0.25rem' }}>{batchName}</h4>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Batch Insight Report</p>
-                    </div>
-                </div>
-                <div style={{ display: 'flex', gap: '4rem' }}>
-                    <div style={{ textAlign: 'center' }}>
-                        <p style={{ fontSize: '2rem', fontWeight: '900', color: 'white' }}>{stats.totalInterns}</p>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Interns</p>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                        <p style={{ fontSize: '2rem', fontWeight: '900', color: 'white' }}>{stats.totalSubjects}</p>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Courses</p>
-                    </div>
-                </div>
-            </div>
+
         </div>
     );
 };

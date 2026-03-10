@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Home, BarChart2, MessageSquare, Users, BookOpen, FileText, ExternalLink, Settings as SettingsIcon, Trash2 } from 'lucide-react';
+import { Home, BarChart2, MessageSquare, Users, BookOpen, Settings as SettingsIcon, Trash2 } from 'lucide-react';
 import FileUpload from './components/FileUpload';
 import InternGrid from './components/InternGrid';
 import ChatBot from './components/ChatBot';
@@ -17,7 +17,7 @@ function App() {
   const [batches, setBatches] = useState<any[]>([]);
   const [activeBatch, setActiveBatch] = useState<any>(null);
   const [subjects, setSubjects] = useState<any[]>([]); // Added subjects state
-  const [sheetInfo, setSheetInfo] = useState<any>(null); // Added sheetInfo state
+
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newBatchName, setNewBatchName] = useState('');
@@ -51,15 +51,7 @@ function App() {
     }
   };
 
-  const fetchSheetInfo = async () => {
-    if (!manager || !activeBatch) return;
-    try {
-      const res = await axios.get(`http://localhost:5000/api/manager-sheet?manager_id=${manager.manager_id}&batch_id=${activeBatch.batch_id}`);
-      setSheetInfo(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+
 
   const fetchSubjects = async () => {
     if (!manager || !activeBatch) return;
@@ -131,7 +123,6 @@ function App() {
 
   useEffect(() => {
     if (manager && activeBatch) {
-      fetchSheetInfo();
       fetchSubjects();
     }
   }, [manager, activeBatch]);
@@ -189,7 +180,7 @@ function App() {
     <div className="app-container">
       <div className="sidebar">
         <div>
-          <h1 style={{ marginBottom: '0.5rem' }}>L&D Portal</h1>
+          <h1 style={{ marginBottom: '0.5rem' }}>Performance Portal</h1>
 
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.3rem', borderRadius: '0.75rem', display: 'flex', gap: '0.3rem', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
             <button
@@ -218,12 +209,12 @@ function App() {
 
           <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700' }}>Workspace Context</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700' }}>Active Batch</p>
               <button
                 onClick={() => setShowBatchModal(true)}
                 style={{ background: 'rgba(147, 51, 234, 0.1)', border: '1px solid rgba(147, 51, 234, 0.2)', color: 'var(--primary)', padding: '0.2rem 0.5rem', borderRadius: '0.4rem', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer' }}
               >
-                + NEW BATCH
+                + ADD NEW BATCH
               </button>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -242,7 +233,7 @@ function App() {
               {activeBatch && (
                 <button
                   onClick={() => setShowDeleteModal(true)}
-                  title="Delete Workspace"
+                  title="Delete Batch"
                   style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '0 0.8rem', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
                 >
                   <Trash2 size={16} />
@@ -259,23 +250,23 @@ function App() {
 
         <nav style={{ flex: 1 }}>
           <button className={`nav-link ${activeTab === 'global' ? 'active' : ''}`} onClick={() => setActiveTab('global')}>
-            <Globe size={18} /> Global Overview
+            <Globe size={18} /> Dashboard
           </button>
 
           <div style={{ margin: '1rem 0', height: '1px', background: 'var(--border)' }}></div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700', padding: '0 1rem', marginBottom: '0.5rem' }}>Workspace Tools</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700', padding: '0 1rem', marginBottom: '0.5rem' }}>Batch Tools</p>
 
           <button className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')} disabled={!activeBatch}>
-            <Home size={18} /> Batch Overview
+            <Home size={18} /> Batch Summary
           </button>
           <button className={`nav-link ${activeTab === 'scores' ? 'active' : ''}`} onClick={() => setActiveTab('scores')} disabled={!activeBatch}>
-            <BarChart2 size={18} /> Performance
+            <BarChart2 size={18} /> Scores
           </button>
           <button className={`nav-link ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveTab('chat')} disabled={!activeBatch}>
-            <MessageSquare size={18} /> AI Assistant
+            <MessageSquare size={18} /> Chatbot
           </button>
           <button className={`nav-link ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')} disabled={!activeBatch}>
-            <SettingsIcon size={18} /> Thresholds
+            <SettingsIcon size={18} /> Grading Rules
           </button>
         </nav>
 
@@ -294,8 +285,8 @@ function App() {
         ) : !activeBatch ? (
           <div className="card" style={{ textAlign: 'center', marginTop: '10rem', background: 'rgba(147, 51, 234, 0.05)', borderStyle: 'dashed' }}>
             <BookOpen size={48} style={{ color: 'var(--primary)', marginBottom: '1.5rem', opacity: 0.5 }} />
-            <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>No Active Workspace</h2>
-            <p style={{ color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto 1.5rem' }}>Switch context by selecting an existing batch or create a new one to start managing performance.</p>
+            <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>No Active Batch</h2>
+            <p style={{ color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto 1.5rem' }}>Switch context by selecting an existing batch or create a new one to start tracking performance.</p>
             <button className="btn" onClick={() => setShowBatchModal(true)}>Create First Batch</button>
           </div>
         ) : (
@@ -310,50 +301,19 @@ function App() {
                     </div>
                     <p style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--primary)', lineHeight: '1' }}>{data.length}</p>
                   </div>
-                  <FileUpload endpoint="upload-interns" label="Intern" onSuccess={fetchData} managerId={manager.manager_id} batchId={activeBatch.batch_id} />
-                  <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(52, 211, 153, 0.05)', borderStyle: 'dashed', position: 'relative' }}>
-                    <div style={{ cursor: 'pointer' }} onClick={() => setActiveTab('feedback')}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
-                        <FileText size={16} />
-                        <span style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Manager Resources</span>
-                      </div>
-                      <p style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--secondary)' }}>Access Sheets & Docs</p>
-                    </div>
-                    {sheetInfo?.type && (
-                      <button
-                        className="btn"
-                        style={{
-                          position: 'absolute',
-                          top: '1rem',
-                          right: '1rem',
-                          padding: '0.4rem',
-                          background: 'var(--primary)',
-                          boxShadow: '0 4px 12px rgba(99,102,241,0.3)'
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (sheetInfo.type === 'link') window.open(sheetInfo.sheet_url, '_blank');
-                          else window.open(`http://localhost:5000/${sheetInfo.file_path}`, '_blank');
-                        }}
-                        title="Open Directly"
-                      >
-                        <ExternalLink size={14} />
-                      </button>
-                    )}
-                  </div>
+                  <FileUpload endpoint="upload-interns" label="Upload Data" onSuccess={fetchData} managerId={manager.manager_id} batchId={activeBatch.batch_id} />
                 </div>
 
                 <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(30, 41, 59, 0) 100%)', marginBottom: '2rem' }}>
-                  <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>Batch Scope: {activeBatch.name}</h2>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>Current Batch: {activeBatch.name}</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '600px' }}>
-                    You are currently viewing data for the selected batch. Use the tabs to manage interns, scores, and access AI-driven performance insights.
+                    Track and manage performance metrics, detailed scoring, and AI-powered recommendations for all interns in this batch.
                   </p>
                 </div>
 
                 <BatchDashboard
                   data={data}
                   subjects={subjects}
-                  batchName={activeBatch.name}
                   managerId={manager.manager_id}
                   batchId={activeBatch.batch_id}
                 />
@@ -361,7 +321,7 @@ function App() {
             )}
 
             {activeTab === 'scores' && (
-              <InternGrid data={data} onRefresh={fetchData} managerId={manager.manager_id} batchId={activeBatch.batch_id} />
+              <InternGrid data={data} managerId={manager.manager_id} batchId={activeBatch.batch_id} />
             )}
 
             {activeTab === 'chat' && (
@@ -415,7 +375,7 @@ function App() {
             <div style={{ background: '#ef4444', width: '64px', height: '64px', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', boxShadow: '0 10px 30px rgba(239,68,68,0.4)' }}>
               <Trash2 size={32} color="white" />
             </div>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem' }}>Delete Workspace?</h2>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem' }}>Delete Batch?</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9375rem' }}>
               Are you sure you want to permanently delete <strong>{activeBatch?.name}</strong>? This will remove all associated interns, scores, settings, and feedback records. This action cannot be undone.
             </p>
@@ -441,7 +401,7 @@ function App() {
                     setActiveBatch(newBatches.length > 0 ? newBatches[0] : null);
                     setData([]);
                     setSubjects([]);
-                    setSheetInfo(null);
+
                     setActiveTab('global');
                     setShowDeleteModal(false);
                   } catch (e) {

@@ -99,7 +99,7 @@ const GlobalDashboard: React.FC<Props> = ({ managerId, activeDepartment }) => {
     if (!globalStats || globalStats.totalBatches === 0) return (
         <div className="card" style={{ textAlign: 'center', padding: '4rem', background: 'rgba(255,255,255,0.02)', borderStyle: 'dashed' }}>
             <Activity size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>No Active Workspaces</h3>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>No Active Batches</h3>
             <p style={{ color: 'var(--text-muted)' }}>Create your first batch to start tracking organizational metrics.</p>
         </div>
     );
@@ -112,8 +112,8 @@ const GlobalDashboard: React.FC<Props> = ({ managerId, activeDepartment }) => {
                         <TrendingUp size={24} />
                     </div>
                     <div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Global L&D Overview</h2>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Aggregate performance metrics across all your active batches and workspaces</p>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>{activeDepartment.replace(' ', '')} Dashboard</h2>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>View performance metrics across all active batches.</p>
                     </div>
                 </div>
             </div>
@@ -122,7 +122,7 @@ const GlobalDashboard: React.FC<Props> = ({ managerId, activeDepartment }) => {
                 <div className="card">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--primary)', marginBottom: '1rem' }}>
                         <Activity size={20} />
-                        <span style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Organization Avg</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Overall Average</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                         <h3 style={{ fontSize: '3rem', fontWeight: '900', color: 'white', lineHeight: '1' }}>{globalStats.overallAverage}</h3>
@@ -149,7 +149,7 @@ const GlobalDashboard: React.FC<Props> = ({ managerId, activeDepartment }) => {
 
             <div className="card" style={{ padding: '2rem' }}>
                 <h3 style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700' }}>
-                    <Award size={20} className="text-secondary" /> Batch Comparison Matrix
+                    <Award size={20} className="text-secondary" /> Batch Performance
                 </h3>
                 <div style={{ width: '100%', height: '350px' }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -170,7 +170,7 @@ const GlobalDashboard: React.FC<Props> = ({ managerId, activeDepartment }) => {
             <div className="card" style={{ background: 'rgba(255,255,255,0.02)', margin: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                     <Award size={20} style={{ color: '#fbbf24' }} />
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700' }}>Organization's Elite Performers</h3>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700' }}>Leading Interns</h3>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
                     {globalStats.topPerformers.map((intern: any, idx: number) => (
