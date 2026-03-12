@@ -110,7 +110,7 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
 
     const getRAGLabel = (score: number) => {
         if (!settings) return 'Analyzing...';
-        if (score >= settings.recommended_score) return 'Highly Recommended for FTE';
+        if (score >= settings.recommended_score) return 'Highly Recommended for FTE Conversion';
         if (score > settings.passing_score) return 'Borderline / Potential with Mentorship';
         return 'Needs Improvement';
     };
@@ -251,7 +251,7 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                                 {ragLabel}
                             </div>
                             <div style={{ fontSize: '2.5rem', fontWeight: '900', color: ragColor, lineHeight: '1' }}>{averagePerformance}%</div>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginTop: '0.25rem' }}>Final Grade Assessment</p>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginTop: '0.25rem' }}>Final Grade</p>
                         </div>
                     </div>
 
@@ -282,13 +282,15 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                     </div>
 
                     {/* AI Insights Section */}
-                    <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(30, 41, 59, 0) 100%)', border: '1px solid rgba(147, 51, 234, 0.2)', margin: 0, padding: '1.5rem', flexShrink: 0 }}>
-                        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: '700', color: 'var(--primary)' }}>
-                            <Sparkles size={20} /> AI Performance Insights
-                        </h3>
-                        <p style={{ color: 'white', fontSize: '0.95rem', lineHeight: '1.6', fontStyle: 'italic' }}>
-                            "{data.ai_summary}"
-                        </p>
+                    <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(30, 41, 59, 0) 100%)', border: '1px solid rgba(147, 51, 234, 0.2)', margin: 0, flexShrink: 0 }}>
+                        <div style={{ padding: '1.5rem', background: 'rgba(147, 51, 234, 0.05)', borderRadius: '1rem', border: '1px solid rgba(147, 51, 234, 0.2)' }}>
+                            <h3 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Sparkles size={20} /> Insights
+                            </h3>
+                            <p style={{ color: 'white', fontSize: '0.95rem', lineHeight: '1.6', fontStyle: 'italic' }}>
+                                "{data.ai_summary}"
+                            </p>
+                        </div>
                     </div>
                 </div>
 

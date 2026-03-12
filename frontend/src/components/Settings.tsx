@@ -59,7 +59,7 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem' }}>
                 <div className="card">
                     <h3 style={{ marginBottom: '2rem', fontSize: '1rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
-                        Performance Levels
+                        Red Amber Green
                     </h3>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

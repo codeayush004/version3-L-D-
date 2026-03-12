@@ -180,7 +180,7 @@ function App() {
     <div className="app-container">
       <div className="sidebar">
         <div>
-          <h1 style={{ marginBottom: '0.5rem' }}>Performance Portal</h1>
+          <h1 style={{ marginBottom: '0.5rem' }}>L&D Portal</h1>
 
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.3rem', borderRadius: '0.75rem', display: 'flex', gap: '0.3rem', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
             <button

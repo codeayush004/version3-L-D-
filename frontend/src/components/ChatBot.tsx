@@ -43,7 +43,7 @@ const ChatBot: React.FC<Props> = ({ managerId, batchId }) => {
                     <Bot size={20} color="white" />
                 </div>
                 <div>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: '700' }}>AI Performance Brain</h2>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: '700' }}>AI Analysis</h2>
                 </div>
             </div>
 
