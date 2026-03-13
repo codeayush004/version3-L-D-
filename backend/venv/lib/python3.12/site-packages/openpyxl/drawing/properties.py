@@ -6,9 +6,7 @@ from openpyxl.descriptors import (
     Typed,
     Bool,
     Integer,
-    Set,
     String,
-    Alias,
     NoneSet,
 )
 from openpyxl.descriptors.excel import ExtensionList as OfficeArtExtensionList

@@ -22,7 +22,6 @@ from h11._state import (
     DONE,
     ERROR,
     IDLE,
-    MIGHT_SWITCH_PROTOCOL,
     MUST_CLOSE,
     SEND_BODY,
     SEND_RESPONSE,

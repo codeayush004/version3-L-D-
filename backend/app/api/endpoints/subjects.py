@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas.all_models import SubjectDeleteModel, SubjectUpdateModel
-from app.core.database import subjects_collection, scores_collection, interns_collection
+from app.core.database import subjects_collection, scores_collection
 
 router = APIRouter(prefix="/api/subjects", tags=["subjects"])
 

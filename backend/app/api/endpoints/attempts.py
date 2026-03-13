@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
 from app.schemas.all_models import AttemptUpdateModel
-from app.core.database import attempts_collection, interns_collection, subjects_collection
+from app.core.database import attempts_collection, interns_collection
 
 router = APIRouter(prefix="/api", tags=["attempts"])
 

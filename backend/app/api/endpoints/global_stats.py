@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.core.database import batches_collection, interns_collection, scores_collection
+from app.core.database import batches_collection, interns_collection
 
 router = APIRouter(prefix="/api", tags=["global"])
 

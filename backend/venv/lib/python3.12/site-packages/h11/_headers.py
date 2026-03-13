@@ -1,5 +1,5 @@
 import re
-from typing import AnyStr, cast, List, overload, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import List, overload, Sequence, Tuple, TYPE_CHECKING, Union
 
 from ._abnf import field_name, field_value
 from ._util import bytesify, LocalProtocolError, validate
