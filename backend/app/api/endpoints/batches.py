@@ -3,7 +3,7 @@ from bson import ObjectId
 from app.schemas.all_models import BatchModel
 from app.core.database import (
     batches_collection, interns_collection, scores_collection, subjects_collection,
-    feedback_collection, settings_collection, manager_sheets_collection, attempts_collection
+    feedback_collection, settings_collection
 )
 
 router = APIRouter(prefix="/api/batches", tags=["batches"])
@@ -100,6 +100,4 @@ async def delete_batch(batch_id: str, manager_id: str):
     subjects_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
     feedback_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
     settings_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
-    manager_sheets_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
-    attempts_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
     return {"message": "Batch deleted successfully"}

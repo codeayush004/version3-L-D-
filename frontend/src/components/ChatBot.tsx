@@ -25,7 +25,8 @@ const ChatBot: React.FC<Props> = ({ managerId, batchId }) => {
             const res = await axios.post('http://localhost:5000/api/chat', {
                 query: userMsg,
                 manager_id: managerId,
-                batch_id: batchId
+                batch_id: batchId,
+                history: messages
             });
             setMessages(prev => [...prev, { role: 'ai', text: res.data.response }]);
         } catch (error) {

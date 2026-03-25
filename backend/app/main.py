@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import (
-    auth, batches, interns, subjects, scores, feedback, reports, excel, chat, manager_sheet, attempts, settings, global_stats
+    auth, batches, subjects, scores, reports, excel, chat, settings, global_stats
 )
 
 app = FastAPI(title="L&D Platform API", version="2.0.0")
@@ -16,15 +16,11 @@ app.add_middleware(
 # Include Routers
 app.include_router(auth.router)
 app.include_router(batches.router)
-app.include_router(interns.router)
 app.include_router(subjects.router)
 app.include_router(scores.router)
-app.include_router(feedback.router)
 app.include_router(reports.router)
 app.include_router(excel.router)
 app.include_router(chat.router)
-app.include_router(manager_sheet.router)
-app.include_router(attempts.router)
 app.include_router(settings.router)
 app.include_router(global_stats.router)
 

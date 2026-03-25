@@ -9,14 +9,6 @@ class BatchModel(BaseModel):
     name: str
     manager_id: str
     department: str = "Data Ops"
-
-class InternModel(BaseModel):
-    Name: str
-    Email: EmailStr
-    EmpID: str
-    manager_id: str
-    batch_id: str
-
 class ScoreUpdateModel(BaseModel):
     EmpID: str
     subject: str
@@ -37,37 +29,14 @@ class SubjectUpdateModel(BaseModel):
     manager_id: str
     batch_id: str
 
-class FeedbackColumnModel(BaseModel):
-    name: str
-    manager_id: str
-    batch_id: str
 
-class FeedbackCellUpdateModel(BaseModel):
-    EmpID: str
-    column: str
-    text: str
-    manager_id: str
-    batch_id: str
 
 class ChatQueryModel(BaseModel):
     query: str
     manager_id: str
     batch_id: str
+    history: Optional[list] = []
 
-class AttemptUpdateModel(BaseModel):
-    EmpID: str
-    subject: str
-    attempt_note: str
-    manager_id: str
-    batch_id: str
 
-class ManagerSheetLinkModel(BaseModel):
-    manager_id: str
-    batch_id: str
-    sheet_url: Optional[str] = None
-    file_path: Optional[str] = None
-    type: str # 'link' or 'upload'
 
-class SyncFeedbackModel(BaseModel):
-    manager_id: str
-    batch_id: str
+

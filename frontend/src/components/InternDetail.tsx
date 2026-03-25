@@ -7,7 +7,12 @@ import {
     Hash,
     TrendingUp,
     Award,
-    Sparkles
+    Sparkles,
+    Calendar,
+    User,
+    Activity,
+    Target,
+    Layers
 } from 'lucide-react';
 import {
     Radar,
@@ -168,15 +173,22 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Hash size={16} /> INT ID: {intern.EmpID}</span>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Mail size={16} /> {intern.Email}</span>
                             </div>
+                            <div style={{ display: 'flex', gap: '0.6rem', color: 'rgba(255,255,255,0.9)', fontSize: '0.75rem', fontWeight: '600', marginTop: '0.6rem', flexWrap: 'wrap' }}>
+                                {intern.mapped_batch && <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255,255,255,0.15)', padding: '0.2rem 0.6rem', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.05)' }}><Layers size={12} /> {intern.mapped_batch}</span>}
+                                {intern.date_of_joining && <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255,255,255,0.15)', padding: '0.2rem 0.6rem', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.05)' }}><Calendar size={12} /> Joined: {intern.date_of_joining}</span>}
+                                {intern.mentor_name && <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255,255,255,0.15)', padding: '0.2rem 0.6rem', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.05)' }}><User size={12} /> Mentor: {intern.mentor_name}</span>}
+                                {intern.training_status && <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255,255,255,0.15)', padding: '0.2rem 0.6rem', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.05)' }}><Activity size={12} /> Status: {intern.training_status}</span>}
+                                {intern.fte_conversion_date && <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255,255,255,0.15)', padding: '0.2rem 0.6rem', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.05)' }}><Target size={12} /> FTE Date: {intern.fte_conversion_date}</span>}
+                            </div>
                         </div>
 
                         {/* Metrics Block */}
-                        <div style={{ marginLeft: 'auto', display: 'flex', gap: '2.5rem', alignItems: 'center' }}>
+                        <div style={{ marginLeft: 'auto', display: 'flex', gap: '2.5rem', alignItems: 'center', flexShrink: 0 }}>
                             {/* Cohort Rank */}
                             {rank && (
-                                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', borderRight: '1px solid rgba(255,255,255,0.2)', paddingRight: '2.5rem' }}>
+                                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', borderRight: '1px solid rgba(255,255,255,0.2)', paddingRight: '2.5rem', whiteSpace: 'nowrap' }}>
                                     <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.7)', marginBottom: '0.25rem', fontWeight: '700' }}>Batch Rank</div>
-                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', whiteSpace: 'nowrap' }}>
                                         <span style={{ fontSize: '2.5rem', fontWeight: '900', color: '#38bdf8', lineHeight: '1', textShadow: '0 4px 15px rgba(56,189,248,0.4)' }}>#{rank}</span>
                                         <span style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.6)', fontWeight: '700' }}>/ {total_interns}</span>
                                     </div>

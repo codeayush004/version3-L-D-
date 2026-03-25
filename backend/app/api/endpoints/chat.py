@@ -11,9 +11,67 @@ groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 @router.post("/chat")
 async def chat(data: ChatQueryModel):
     try:
-        interns = list(interns_collection.find({'manager_id': data.manager_id, 'batch_id': data.batch_id}, {'_id': 0}))
-        scores = list(scores_collection.find({'manager_id': data.manager_id, 'batch_id': data.batch_id}, {'_id': 0}))
-        feedbacks = list(feedback_collection.find({'manager_id': data.manager_id, 'batch_id': data.batch_id}, {'_id': 0}))
+        # Step 1: Intent Classification (Two-Step Pipeline)
+        router_prompt = """
+You are a query classifier. Determine if the user is asking about a specific individual or the whole batch.
+If individual, extract the name or EmpID.
+Output ONLY valid JSON, nothing else:
+{"intent": "individual" | "batch", "identifier": "Name or ID" | null}
+"""
+        try:
+            intent_res = groq_client.chat.completions.create(
+                model="openai/gpt-oss-120b",
+                messages=[
+                    {"role": "system", "content": router_prompt},
+                    {"role": "user", "content": data.query}
+                ],
+                temperature=0.1
+            )
+            intent_text = intent_res.choices[0].message.content.strip()
+            # Clean up potential markdown formatting from LLM
+            if intent_text.startswith("```"):
+                lines = intent_text.split('\n')
+                intent_text = '\n'.join(lines[1:-1]) if len(lines) > 2 else intent_text
+            intent_data = json.loads(intent_text)
+        except Exception as e:
+            # Fallback to fetching everything if classification fails
+            intent_data = {"intent": "batch", "identifier": None}
+
+        # Step 2: Targeted Database Fetch
+        intern_query = {'manager_id': data.manager_id, 'batch_id': data.batch_id}
+        query_matched_specific = False
+        interns = []
+        scores = []
+        feedbacks = []
+        
+        if intent_data.get("intent") == "individual" and intent_data.get("identifier"):
+            identifier = intent_data["identifier"]
+            intern_query['$or'] = [
+                {'EmpID': identifier}, 
+                {'Name': {'$regex': identifier, '$options': 'i'}}
+            ]
+            
+            # Fetch matching intern first to get exact EmpIDs for scores/feedback correlation
+            matching_interns = list(interns_collection.find(intern_query, {'_id': 0}))
+            if matching_interns:
+                if len(matching_interns) > 1:
+                    # Instant short-circuit if multiple names collide
+                    names_and_ids = ", ".join([f"**{i['Name']}** ({i['EmpID']})" for i in matching_interns])
+                    return {"response": f"I found multiple interns matching that name: {names_and_ids}. Could you please specify which one you are asking about by providing their exact ID?"}
+
+                interns = matching_interns
+                matched_emp_ids = [i['EmpID'] for i in matching_interns]
+                sf_query = {'manager_id': data.manager_id, 'batch_id': data.batch_id, 'EmpID': {'$in': matched_emp_ids}}
+                scores = list(scores_collection.find(sf_query, {'_id': 0}))
+                feedbacks = list(feedback_collection.find(sf_query, {'_id': 0}))
+                query_matched_specific = True
+
+        if not query_matched_specific:
+            # Fallback to batch-wide query if intent was batch, or if the individual was not found
+            interns = list(interns_collection.find({'manager_id': data.manager_id, 'batch_id': data.batch_id}, {'_id': 0}))
+            scores = list(scores_collection.find({'manager_id': data.manager_id, 'batch_id': data.batch_id}, {'_id': 0}))
+            feedbacks = list(feedback_collection.find({'manager_id': data.manager_id, 'batch_id': data.batch_id}, {'_id': 0}))
+
         batch = batches_collection.find_one({'batch_id': data.batch_id})
         batch_name = batch['name'] if batch else "Unknown Batch"
 
@@ -64,12 +122,18 @@ CRITICAL FORMATTING RULES:
 3. DO NOT output the step-by-step mathematical reasoning. Provide the final numbers directly.
 4. Use bolding for emphasis."""
         
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        if getattr(data, 'history', None):
+            for msg in data.history[-6:]:
+                role = "assistant" if msg.get("role") == "ai" else "user"
+                messages.append({"role": role, "content": msg.get("text", "")})
+                
+        messages.append({"role": "user", "content": f"Context:\n{context}\n\nQuery: {data.query}"})
+        
         completion = groq_client.chat.completions.create(
             model="openai/gpt-oss-120b",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Context:\n{context}\n\nQuery: {data.query}"}
-            ]
+            messages=messages
         )
         return {"response": completion.choices[0].message.content}
     except Exception as e:
