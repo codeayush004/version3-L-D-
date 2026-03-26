@@ -38,7 +38,7 @@ Output ONLY valid JSON, nothing else:
             intent_data = {"intent": "batch", "identifier": None}
 
         # Step 2: Targeted Database Fetch
-        intern_query = {'manager_id': data.manager_id, 'batch_id': data.batch_id}
+        intern_query = {'batch_id': data.batch_id}
         query_matched_specific = False
         interns = []
         scores = []
@@ -61,16 +61,16 @@ Output ONLY valid JSON, nothing else:
 
                 interns = matching_interns
                 matched_emp_ids = [i['EmpID'] for i in matching_interns]
-                sf_query = {'manager_id': data.manager_id, 'batch_id': data.batch_id, 'EmpID': {'$in': matched_emp_ids}}
+                sf_query = {'batch_id': data.batch_id, 'EmpID': {'$in': matched_emp_ids}}
                 scores = list(scores_collection.find(sf_query, {'_id': 0}))
                 feedbacks = list(feedback_collection.find(sf_query, {'_id': 0}))
                 query_matched_specific = True
 
         if not query_matched_specific:
             # Fallback to batch-wide query if intent was batch, or if the individual was not found
-            interns = list(interns_collection.find({'manager_id': data.manager_id, 'batch_id': data.batch_id}, {'_id': 0}))
-            scores = list(scores_collection.find({'manager_id': data.manager_id, 'batch_id': data.batch_id}, {'_id': 0}))
-            feedbacks = list(feedback_collection.find({'manager_id': data.manager_id, 'batch_id': data.batch_id}, {'_id': 0}))
+            interns = list(interns_collection.find({'batch_id': data.batch_id}, {'_id': 0}))
+            scores = list(scores_collection.find({'batch_id': data.batch_id}, {'_id': 0}))
+            feedbacks = list(feedback_collection.find({'batch_id': data.batch_id}, {'_id': 0}))
 
         batch = batches_collection.find_one({'batch_id': data.batch_id})
         batch_name = batch['name'] if batch else "Unknown Batch"
@@ -82,7 +82,7 @@ Output ONLY valid JSON, nothing else:
             if eid not in feedback_map: feedback_map[eid] = []
             feedback_map[eid].append(f"{f.get('column', 'General')}: {f['text']}")
 
-        settings = settings_collection.find_one({"manager_id": data.manager_id, "batch_id": data.batch_id}, {"_id": 0})
+        settings = settings_collection.find_one({"batch_id": data.batch_id}, {"_id": 0})
         settings_context = "No custom threshold settings found. Assume standard 60% passing."
         if settings:
             settings_context = f"""

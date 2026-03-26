@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useIsAuthenticated, useMsal } from '@azure/msal-react';
+import { loginRequest } from './authConfig';
 import { Home, BarChart2, MessageSquare, Users, BookOpen, Settings as SettingsIcon, Trash2 } from 'lucide-react';
 import FileUpload from './components/FileUpload';
 import InternGrid from './components/InternGrid';
@@ -24,9 +26,54 @@ function App() {
   const [activeDepartment, setActiveDepartment] = useState<'Data Ops' | 'Data Engineering'>('Data Ops');
   const [isCreatingBatch, setIsCreatingBatch] = useState(false);
   const [isDeletingBatch, setIsDeletingBatch] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+
+  const isAuthenticated = useIsAuthenticated();
+  const { instance, accounts } = useMsal();
+
+  useEffect(() => {
+    if (isAuthenticated && accounts.length > 0) {
+      const user = accounts[0];
+      const roles = (user.idTokenClaims?.roles as string[]) || [];
+      setManager({
+        name: user.name,
+        manager_id: user.username,
+        username: user.username,
+        roles: roles
+      });
+
+      // Inject MSAL Bearer token into all outgoing Axios requests
+      const requestInterceptor = axios.interceptors.request.use(async (config) => {
+        try {
+          const tokenResponse = await instance.acquireTokenSilent({
+            scopes: ["User.Read"],
+            account: user
+          });
+          config.headers.Authorization = `Bearer ${tokenResponse.idToken}`;
+        } catch (error) {
+          console.error("Token acquisition failed", error);
+        }
+        return config;
+      });
+
+      return () => {
+        axios.interceptors.request.eject(requestInterceptor);
+      };
+    } else {
+      setManager(null);
+    }
+  }, [isAuthenticated, accounts, instance]);
+
+  const handleLogin = () => {
+    instance.loginRedirect(loginRequest).catch(e => console.error(e));
+  };
+
+  const handleLogout = () => {
+    instance.logoutRedirect({
+      postLogoutRedirectUri: "/",
+    });
+  };
+
+  const isLDManager = manager?.roles?.includes('LDManager');
 
   const fetchData = async () => {
     if (!manager || !activeBatch) return;
@@ -89,24 +136,7 @@ function App() {
     }
   };
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const endpoint = authMode === 'login' ? 'login' : 'register';
-      const res = await axios.post(`http://localhost:5000/api/${endpoint}`, { username, password });
-      setManager(res.data);
-      setUsername('');
-      setPassword('');
-      localStorage.setItem('manager', JSON.stringify(res.data));
-    } catch (error: any) {
-      alert(error.response?.data?.detail || "Auth failed");
-    }
-  };
 
-  useEffect(() => {
-    const saved = localStorage.getItem('manager');
-    if (saved) setManager(JSON.parse(saved));
-  }, []);
 
   useEffect(() => {
     fetchData();
@@ -127,50 +157,17 @@ function App() {
     }
   }, [manager, activeBatch]);
 
-  if (!manager) {
+  if (!isAuthenticated || !manager) {
     return (
       <div className="auth-container">
-        <div className="card auth-card">
+        <div className="card auth-card" style={{ textAlign: 'center' }}>
           <div className="auth-header">
-            <h2>{authMode === 'login' ? 'Welcome Back' : 'Create Account'}</h2>
-            <p>{authMode === 'login' ? 'Login to manage your interns' : 'Register to start tracking performance'}</p>
+            <h2>Welcome to Sigmoid</h2>
+            <p>L&D Performance Portal</p>
           </div>
-
-          <form onSubmit={handleAuth}>
-            <div className="input-group">
-              <label>Username</label>
-              <input
-                type="text"
-                placeholder="Manager ID / Name"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div className="input-group" style={{ marginBottom: '2.5rem' }}>
-              <label>Security Key</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button className="btn" style={{ width: '100%', padding: '1rem', fontSize: '1rem' }} type="submit">
-              {authMode === 'login' ? 'Sign In to Portal' : 'Register Manager'}
-            </button>
-          </form>
-
-          <p className="auth-footer">
-            {authMode === 'login' ? "Don't have an account?" : "Already registered?"}
-            <span
-              className="auth-toggle"
-              onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-            >
-              {authMode === 'login' ? "Create one now" : "Go to Login"}
-            </span>
-          </p>
+          <button className="btn" style={{ width: '100%', padding: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: '#0078D4' }} onClick={handleLogin}>
+            Sign In with Microsoft
+          </button>
         </div>
       </div>
     );
@@ -210,12 +207,14 @@ function App() {
           <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700' }}>Active Batch</p>
-              <button
-                onClick={() => setShowBatchModal(true)}
-                style={{ background: 'rgba(147, 51, 234, 0.1)', border: '1px solid rgba(147, 51, 234, 0.2)', color: 'var(--primary)', padding: '0.2rem 0.5rem', borderRadius: '0.4rem', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer' }}
-              >
-                + ADD NEW BATCH
-              </button>
+              {isLDManager && (
+                <button
+                  onClick={() => setShowBatchModal(true)}
+                  style={{ background: 'rgba(147, 51, 234, 0.1)', border: '1px solid rgba(147, 51, 234, 0.2)', color: 'var(--primary)', padding: '0.2rem 0.5rem', borderRadius: '0.4rem', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  + ADD NEW BATCH
+                </button>
+              )}
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <select
@@ -230,7 +229,7 @@ function App() {
                   </option>
                 ))}
               </select>
-              {activeBatch && (
+              {isLDManager && activeBatch && (
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   title="Delete Batch"
@@ -244,7 +243,7 @@ function App() {
 
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '0.75rem', marginBottom: '2rem', border: '1px solid var(--border)' }}>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700', marginBottom: '0.25rem' }}>Active Manager</p>
-            <p style={{ color: 'white', fontWeight: '600' }}>{manager.username}</p>
+            <p style={{ color: 'white', fontWeight: '600', wordBreak: 'break-all' }}>{manager.username}</p>
           </div>
         </div>
 
@@ -273,7 +272,7 @@ function App() {
         <button
           className="btn"
           style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
-          onClick={() => { localStorage.removeItem('manager'); setManager(null); }}
+          onClick={handleLogout}
         >
           Sign Out
         </button>
@@ -301,7 +300,9 @@ function App() {
                     </div>
                     <p style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--primary)', lineHeight: '1' }}>{data.length}</p>
                   </div>
-                  <FileUpload endpoint="upload-interns" label="Upload Data" onSuccess={fetchData} managerId={manager.manager_id} batchId={activeBatch.batch_id} />
+                  {isLDManager && (
+                    <FileUpload endpoint="upload-interns" label="Upload Data" onSuccess={fetchData} managerId={manager.manager_id} batchId={activeBatch.batch_id} />
+                  )}
                 </div>
 
                 <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(30, 41, 59, 0) 100%)', marginBottom: '2rem' }}>

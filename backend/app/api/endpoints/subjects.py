@@ -7,7 +7,7 @@ router = APIRouter(prefix="/api/subjects", tags=["subjects"])
 @router.get("")
 async def get_subjects(manager_id: str, batch_id: str):
     try:
-        doc = subjects_collection.find_one({'manager_id': manager_id, 'batch_id': batch_id})
+        doc = subjects_collection.find_one({'batch_id': batch_id})
         if not doc: return []
         
         raw_list = doc.get('list') or doc.get('subjects') or []

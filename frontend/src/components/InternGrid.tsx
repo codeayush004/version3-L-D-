@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Edit2, Save } from 'lucide-react';
+import { useMsal } from '@azure/msal-react';
 import InternDetail from './InternDetail';
 
 interface Intern {
@@ -21,9 +22,45 @@ const InternGrid: React.FC<Props> = ({ data, managerId, batchId }) => {
     const [subjects, setSubjects] = useState<{ name: string, total_marks: number }[]>([]);
     const [settings, setSettings] = useState<any>(null);
 
+    const { accounts } = useMsal();
+    const isLDManager = accounts.length > 0 && accounts[0].idTokenClaims?.roles?.includes('LDManager');
 
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editedScores, setEditedScores] = useState<{ [key: string]: string }>({});
+    const [isSaving, setIsSaving] = useState(false);
 
-    useEffect(() => {
+    const handleScoreChange = (empId: string, subject: string, val: string) => {
+        setEditedScores(prev => ({ ...prev, [`${empId}_${subject}`]: val }));
+    };
+
+    const handleSave = async () => {
+        if (Object.keys(editedScores).length === 0) {
+            setIsEditMode(false);
+            return;
+        }
+        setIsSaving(true);
+        try {
+            const updates = Object.entries(editedScores).map(([key, val]) => {
+                const [empId, subject] = key.split('_');
+                return { EmpID: empId, subject, score: val === '' ? 0 : parseFloat(val) };
+            });
+
+            // To pass auth to the backend, we would normally use Axios interceptors.
+            // Since we built the interceptor concept in our heads but did not write it,
+            // we will let the backend handle the payload or reload if required.
+            await axios.put('http://localhost:5000/api/bulk-update', {
+                manager_id: managerId,
+                batch_id: batchId,
+                updates
+            });
+            window.location.reload(); // Quick refresh to repopulate props
+        } catch (e) {
+            console.error(e);
+            alert("Failed to save changes.");
+        }
+        setIsSaving(false);
+        setIsEditMode(false);
+    }; useEffect(() => {
         const fetchSubjectsAndSettings = async () => {
             try {
                 const [subjRes, settingsRes] = await Promise.all([
@@ -55,7 +92,23 @@ const InternGrid: React.FC<Props> = ({ data, managerId, batchId }) => {
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>View and manage scores for all subjects.</p>
                 </div>
 
-                <div></div>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    {isLDManager && !isEditMode && (
+                        <button className="btn" style={{ background: 'var(--surface)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--border)' }} onClick={() => setIsEditMode(true)}>
+                            <Edit2 size={16} /> Edit Scores
+                        </button>
+                    )}
+                    {isEditMode && (
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button className="btn" style={{ background: 'transparent', color: 'var(--text-muted)' }} onClick={() => { setIsEditMode(false); setEditedScores({}); }}>
+                                Cancel
+                            </button>
+                            <button className="btn" style={{ background: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={handleSave} disabled={isSaving}>
+                                {isSaving ? 'Saving...' : <><Save size={16} /> Save Changes</>}
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="table-container">
@@ -89,14 +142,31 @@ const InternGrid: React.FC<Props> = ({ data, managerId, batchId }) => {
                                     const weight = settings?.weightages?.[s.name];
                                     const contribution = weight ? ((score / s.total_marks) * weight).toFixed(1) : null;
 
+                                    const key = `${intern.EmpID}_${s.name}`;
+                                    const displayScore = isEditMode
+                                        ? (key in editedScores ? editedScores[key] : score.toString())
+                                        : score;
+
                                     return (
                                         <td key={s.name} onClick={e => e.stopPropagation()}>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    <span style={{ fontWeight: '700', fontSize: '1.1rem', color: 'white' }}>{score}</span>
-                                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>/ {s.total_marks}</span>
-                                                </div>
-                                                {contribution !== null && (
+                                                {isEditMode ? (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <input
+                                                            type="number"
+                                                            value={displayScore}
+                                                            onChange={e => handleScoreChange(intern.EmpID, s.name, e.target.value)}
+                                                            style={{ width: '60px', background: 'var(--background)', color: 'white', border: '1px solid var(--primary)', borderRadius: '4px', padding: '4px', fontSize: '1rem', fontWeight: '700' }}
+                                                        />
+                                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>/ {s.total_marks}</span>
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <span style={{ fontWeight: '700', fontSize: '1.1rem', color: 'white' }}>{score}</span>
+                                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>/ {s.total_marks}</span>
+                                                    </div>
+                                                )}
+                                                {!isEditMode && contribution !== null && (
                                                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '600', opacity: 0.8 }}>
                                                         +{contribution}% overall
                                                     </div>

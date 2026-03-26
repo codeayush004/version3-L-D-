@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from bson import ObjectId
 from app.schemas.all_models import BatchModel
 from app.core.database import (
@@ -6,10 +6,11 @@ from app.core.database import (
     feedback_collection, settings_collection
 )
 
+from app.api.dependencies import verify_manager_role
 router = APIRouter(prefix="/api/batches", tags=["batches"])
 
 @router.post("", status_code=201)
-async def create_batch(data: BatchModel):
+async def create_batch(data: BatchModel, token_payload: dict = Depends(verify_manager_role)):
     batch_id = str(ObjectId())
     batches_collection.insert_one({
         'batch_id': batch_id,
@@ -85,7 +86,7 @@ async def create_batch(data: BatchModel):
 
 @router.get("")
 async def get_batches(manager_id: str, department: str = None):
-    query = {'manager_id': manager_id}
+    query = {}
     if department:
         query['department'] = department
         
@@ -93,7 +94,7 @@ async def get_batches(manager_id: str, department: str = None):
     return batches
 
 @router.delete("/{batch_id}")
-async def delete_batch(batch_id: str, manager_id: str):
+async def delete_batch(batch_id: str, manager_id: str, token_payload: dict = Depends(verify_manager_role)):
     batches_collection.delete_one({'batch_id': batch_id, 'manager_id': manager_id})
     interns_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
     scores_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})

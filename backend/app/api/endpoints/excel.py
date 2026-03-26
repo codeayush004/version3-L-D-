@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from fastapi.responses import StreamingResponse
 import io
 import pandas as pd
@@ -8,13 +8,16 @@ from app.core.database import (
     feedback_collection, batches_collection
 )
 
+from app.api.dependencies import verify_manager_role
+
 router = APIRouter(prefix="/api", tags=["excel"])
 
 @router.post("/upload-interns")
 async def upload_interns(
     manager_id: str = Form(...),
     batch_id: str = Form(...),
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    token_payload: dict = Depends(verify_manager_role)
 ):
     try:
         contents = await file.read()

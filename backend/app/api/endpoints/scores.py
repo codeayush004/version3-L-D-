@@ -1,19 +1,20 @@
-from fastapi import APIRouter, HTTPException
-from app.schemas.all_models import ScoreUpdateModel
+from fastapi import APIRouter, HTTPException, Depends
+from app.schemas.all_models import ScoreUpdateModel, BulkScoreUpdateModel
 from app.core.database import interns_collection, scores_collection, subjects_collection, feedback_collection
+from app.api.dependencies import verify_azure_token, verify_manager_role
 
 router = APIRouter(prefix="/api", tags=["scores"])
 
 @router.get("/scores")
-async def get_scores(manager_id: str, batch_id: str):
+async def get_scores(manager_id: str, batch_id: str, token_payload: dict = Depends(verify_azure_token)):
     try:
-        interns = list(interns_collection.find({'manager_id': manager_id, 'batch_id': batch_id}, {'_id': 0}))
-        scores = list(scores_collection.find({'manager_id': manager_id, 'batch_id': batch_id}, {'_id': 0}))
+        interns = list(interns_collection.find({'batch_id': batch_id}, {'_id': 0}))
+        scores = list(scores_collection.find({'batch_id': batch_id}, {'_id': 0}))
         
         scores_map = {s['EmpID']: s.get('scores', {}) for s in scores}
         
         # Fetch feedback to get the latest comment for each intern
-        feedbacks = list(feedback_collection.find({'manager_id': manager_id, 'batch_id': batch_id}, {'_id': 0}).sort('date', -1))
+        feedbacks = list(feedback_collection.find({'batch_id': batch_id}, {'_id': 0}).sort('date', -1))
         feedback_map = {}
         for f in feedbacks:
             if f['EmpID'] not in feedback_map:
@@ -31,7 +32,7 @@ async def get_scores(manager_id: str, batch_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update-score")
-async def update_score(data: ScoreUpdateModel):
+async def update_score(data: ScoreUpdateModel, token_payload: dict = Depends(verify_manager_role)):
     try:
         # 1. Update the actual score
         scores_collection.update_one(
@@ -67,5 +68,32 @@ async def update_score(data: ScoreUpdateModel):
             )
         
         return {"message": "Score updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/bulk-update")
+async def bulk_update_scores(data: BulkScoreUpdateModel, token_payload: dict = Depends(verify_manager_role)):
+    try:
+        from pymongo import UpdateOne
+        operations = []
+        for update in data.updates:
+            emp_id = update.get("EmpID")
+            subject = update.get("subject")
+            score = update.get("score")
+            
+            if emp_id and subject and score is not None:
+                operations.append(
+                    UpdateOne(
+                        {'EmpID': emp_id, 'manager_id': data.manager_id, 'batch_id': data.batch_id},
+                        {'$set': {f'scores.{subject}': float(score)}},
+                        upsert=True
+                    )
+                )
+        
+        if operations:
+            scores_collection.bulk_write(operations)
+            
+        return {"message": "Scores updated successfully", "count": len(operations)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

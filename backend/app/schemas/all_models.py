@@ -17,6 +17,11 @@ class ScoreUpdateModel(BaseModel):
     manager_id: str
     batch_id: str
 
+class BulkScoreUpdateModel(BaseModel):
+    manager_id: str
+    batch_id: str
+    updates: list # List of {EmpID, subject, score} dictionaries
+
 class SubjectDeleteModel(BaseModel):
     subject: str
     manager_id: str

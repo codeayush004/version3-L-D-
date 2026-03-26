@@ -16,10 +16,10 @@ class ThresholdSettings(BaseModel):
 @router.get("/")
 async def get_settings(manager_id: str, batch_id: str):
     try:
-        settings = settings_collection.find_one({"manager_id": manager_id, "batch_id": batch_id}, {"_id": 0})
+        settings = settings_collection.find_one({"batch_id": batch_id}, {"_id": 0})
         if not settings:
             # Dynamically calculate equal weight distributions based on the batch's subjects
-            subjects_doc = subjects_collection.find_one({"manager_id": manager_id, "batch_id": batch_id})
+            subjects_doc = subjects_collection.find_one({"batch_id": batch_id})
             subj_list = subjects_doc.get('list', []) if subjects_doc else []
             default_weights = {}
             if subj_list:
