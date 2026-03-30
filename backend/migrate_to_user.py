@@ -1,10 +1,14 @@
 import pymongo
 import sys
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Update this to your current email as shown in the "Active Manager" section (bottom left)
 NEW_MANAGER_EMAIL = "your_actual_email@sigmoid.com" 
 
-MONGO_URI = "mongodb+srv://admin:admin@cluster0.yljdxwr.mongodb.net/?appName=Cluster0"
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/ld_portal")
 DATABASE_NAME = "ld_platform"
 
 def migrate_test_data():
