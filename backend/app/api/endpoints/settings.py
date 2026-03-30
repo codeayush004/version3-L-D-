@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from app.core.database import settings_collection, subjects_collection
+from app.core.database import settings_collection, subjects_collection, batches_collection
+from app.api.dependencies import verify_manager_role
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
@@ -16,6 +17,9 @@ class ThresholdSettings(BaseModel):
 @router.get("/")
 async def get_settings(manager_id: str, batch_id: str):
     try:
+        # DEV BYPASS: No RBAC
+        m_id = "dev@example.com"
+
         settings = settings_collection.find_one({"batch_id": batch_id}, {"_id": 0})
         if not settings:
             # Dynamically calculate equal weight distributions based on the batch's subjects
@@ -44,7 +48,7 @@ async def get_settings(manager_id: str, batch_id: str):
 async def update_settings(settings: ThresholdSettings):
     try:
         settings_collection.update_one(
-            {"manager_id": settings.manager_id, "batch_id": settings.batch_id},
+            {"batch_id": settings.batch_id},
             {"$set": settings.dict()},
             upsert=True
         )

@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import axios from 'axios';
 import { TrendingUp, Award, AlertCircle } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 interface Intern {
     EmpID: string;
@@ -27,7 +28,7 @@ const BatchDashboard: React.FC<Props> = ({ data, subjects, managerId, batchId })
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/settings?manager_id=${managerId}&batch_id=${batchId}`);
+                const res = await axios.get(`${API_BASE_URL}/api/settings?manager_id=${managerId}&batch_id=${batchId}`);
                 setSettings(res.data);
             } catch (error) {
                 console.error("Failed to fetch settings", error);

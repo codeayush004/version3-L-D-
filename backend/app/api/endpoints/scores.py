@@ -6,7 +6,9 @@ from app.api.dependencies import verify_azure_token, verify_manager_role
 router = APIRouter(prefix="/api", tags=["scores"])
 
 @router.get("/scores")
-async def get_scores(manager_id: str, batch_id: str, token_payload: dict = Depends(verify_azure_token)):
+async def get_scores(batch_id: str, manager_id: str = "dev@example.com"):
+    m_id = "dev@example.com"
+    
     try:
         interns = list(interns_collection.find({'batch_id': batch_id}, {'_id': 0}))
         scores = list(scores_collection.find({'batch_id': batch_id}, {'_id': 0}))
@@ -32,18 +34,18 @@ async def get_scores(manager_id: str, batch_id: str, token_payload: dict = Depen
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update-score")
-async def update_score(data: ScoreUpdateModel, token_payload: dict = Depends(verify_manager_role)):
+async def update_score(data: ScoreUpdateModel):
     try:
         # 1. Update the actual score
         scores_collection.update_one(
-            {'EmpID': data.EmpID, 'manager_id': data.manager_id, 'batch_id': data.batch_id},
+            {'EmpID': data.EmpID, 'batch_id': data.batch_id},
             {'$set': {f'scores.{data.subject}': data.score}},
             upsert=True
         )
         
         # 2. Sync subjects list
         if data.total_marks is not None:
-            subj_doc = subjects_collection.find_one({'manager_id': data.manager_id, 'batch_id': data.batch_id})
+            subj_doc = subjects_collection.find_one({'batch_id': data.batch_id})
             existing_list = []
             if subj_doc:
                 existing_list = subj_doc.get('list') or subj_doc.get('subjects') or []
@@ -62,7 +64,7 @@ async def update_score(data: ScoreUpdateModel, token_payload: dict = Depends(ver
                 new_list.append({"name": data.subject, "total_marks": int(data.total_marks)})
                 
             subjects_collection.update_one(
-                {'manager_id': data.manager_id, 'batch_id': data.batch_id},
+                {'batch_id': data.batch_id},
                 {'$set': {'list': new_list}, '$unset': {'subjects': ""}},
                 upsert=True
             )
@@ -73,7 +75,7 @@ async def update_score(data: ScoreUpdateModel, token_payload: dict = Depends(ver
 
 
 @router.put("/bulk-update")
-async def bulk_update_scores(data: BulkScoreUpdateModel, token_payload: dict = Depends(verify_manager_role)):
+async def bulk_update_scores(data: BulkScoreUpdateModel):
     try:
         from pymongo import UpdateOne
         operations = []
@@ -85,7 +87,7 @@ async def bulk_update_scores(data: BulkScoreUpdateModel, token_payload: dict = D
             if emp_id and subject and score is not None:
                 operations.append(
                     UpdateOne(
-                        {'EmpID': emp_id, 'manager_id': data.manager_id, 'batch_id': data.batch_id},
+                        {'EmpID': emp_id, 'batch_id': data.batch_id},
                         {'$set': {f'scores.{subject}': float(score)}},
                         upsert=True
                     )

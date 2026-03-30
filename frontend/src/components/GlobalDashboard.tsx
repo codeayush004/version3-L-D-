@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { TrendingUp, Users, Target, Activity, Award } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { API_BASE_URL } from '../config';
 
 interface Props {
     managerId: string;
@@ -15,7 +16,7 @@ const GlobalDashboard: React.FC<Props> = ({ managerId, activeDepartment }) => {
     useEffect(() => {
         const fetchAllData = async () => {
             try {
-                const batchRes = await axios.get(`http://localhost:5000/api/batches?manager_id=${managerId}&department=${activeDepartment}`);
+                const batchRes = await axios.get(`${API_BASE_URL}/api/batches?manager_id=${managerId}&department=${activeDepartment}`);
                 const batchList = batchRes.data;
 
                 // 2. Fetch scores, settings, and subjects for EVERY batch
@@ -27,9 +28,9 @@ const GlobalDashboard: React.FC<Props> = ({ managerId, activeDepartment }) => {
 
                 for (const b of batchList) {
                     const [scoresRes, settingsRes, subjectsRes] = await Promise.all([
-                        axios.get(`http://localhost:5000/api/scores?manager_id=${managerId}&batch_id=${b.batch_id}`),
-                        axios.get(`http://localhost:5000/api/settings?manager_id=${managerId}&batch_id=${b.batch_id}`),
-                        axios.get(`http://localhost:5000/api/subjects?manager_id=${managerId}&batch_id=${b.batch_id}`)
+                        axios.get(`${API_BASE_URL}/api/scores?manager_id=${managerId}&batch_id=${b.batch_id}`),
+                        axios.get(`${API_BASE_URL}/api/settings?manager_id=${managerId}&batch_id=${b.batch_id}`),
+                        axios.get(`${API_BASE_URL}/api/subjects?manager_id=${managerId}&batch_id=${b.batch_id}`)
                     ]);
 
                     const data = scoresRes.data;

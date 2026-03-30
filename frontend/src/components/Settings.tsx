@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Save, RefreshCw } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 interface SettingsProps {
     managerId: string;
@@ -20,7 +21,7 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/settings?manager_id=${managerId}&batch_id=${batchId}`);
+                const res = await axios.get(`${API_BASE_URL}/api/settings?manager_id=${managerId}&batch_id=${batchId}`);
                 setSettings(res.data);
             } catch (error) {
                 console.error("Failed to fetch settings", error);
@@ -34,7 +35,7 @@ const Settings: React.FC<SettingsProps> = ({ managerId, batchId }) => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            await axios.post('http://localhost:5000/api/settings', {
+            await axios.post(`${API_BASE_URL}/api/settings`, {
                 ...settings,
                 manager_id: managerId,
                 batch_id: batchId

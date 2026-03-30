@@ -13,3 +13,4 @@ subjects_collection = db.subjects
 batches_collection = db.batches
 
 settings_collection = db.settings
+chat_history_collection = db.chat_history

@@ -23,7 +23,7 @@ import {
     ResponsiveContainer,
     Tooltip
 } from 'recharts';
-
+import { API_BASE_URL } from '../config';
 interface InternDetailProps {
     empId: string;
     managerId: string;
@@ -40,8 +40,8 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
         const fetchData = async () => {
             try {
                 const [reportRes, settingsRes] = await Promise.all([
-                    axios.get(`http://localhost:5000/api/reports/${empId}?manager_id=${managerId}&batch_id=${batchId}`),
-                    axios.get(`http://localhost:5000/api/settings?manager_id=${managerId}&batch_id=${batchId}`)
+                    axios.get(`${API_BASE_URL}/api/reports/${empId}?manager_id=${managerId}&batch_id=${batchId}`),
+                    axios.get(`${API_BASE_URL}/api/settings?manager_id=${managerId}&batch_id=${batchId}`)
                 ]);
                 setData(reportRes.data);
                 setSettings(settingsRes.data);
@@ -180,6 +180,11 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                                 {intern.training_status && <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255,255,255,0.15)', padding: '0.2rem 0.6rem', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.05)' }}><Activity size={12} /> Status: {intern.training_status}</span>}
                                 {intern.fte_conversion_date && <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255,255,255,0.15)', padding: '0.2rem 0.6rem', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.05)' }}><Target size={12} /> FTE Date: {intern.fte_conversion_date}</span>}
                             </div>
+                            <div style={{ display: 'flex', gap: '0.6rem', color: 'rgba(255,255,255,0.8)', fontSize: '0.7rem', fontWeight: '500', marginTop: '0.4rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.4rem' }}>
+                                {intern.college && <span>🎓 {intern.college}</span>}
+                                {intern.degree && <span>• {intern.degree}</span>}
+                                {intern.cgpa && <span>• CGPA: {intern.cgpa}</span>}
+                            </div>
                         </div>
 
                         {/* Metrics Block */}
@@ -294,14 +299,36 @@ const InternDetail: React.FC<InternDetailProps> = ({ empId, managerId, batchId, 
                     </div>
 
                     {/* AI Insights Section */}
-                    <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(30, 41, 59, 0) 100%)', border: '1px solid rgba(147, 51, 234, 0.2)', margin: 0, flexShrink: 0 }}>
-                        <div style={{ padding: '1.5rem', background: 'rgba(147, 51, 234, 0.05)', borderRadius: '1rem', border: '1px solid rgba(147, 51, 234, 0.2)' }}>
-                            <h3 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Sparkles size={20} /> Insights
-                            </h3>
-                            <p style={{ color: 'white', fontSize: '0.95rem', lineHeight: '1.6', fontStyle: 'italic' }}>
-                                "{data.ai_summary}"
-                            </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                        <div className="card" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(30, 41, 59, 0) 100%)', border: '1px solid rgba(147, 51, 234, 0.2)', margin: 0, flexShrink: 0 }}>
+                            <div style={{ padding: '1.5rem', background: 'rgba(147, 51, 234, 0.05)', borderRadius: '1rem', border: '1px solid rgba(147, 51, 234, 0.2)' }}>
+                                <h3 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Sparkles size={20} /> AI Insights
+                                </h3>
+                                <p style={{ color: 'white', fontSize: '0.95rem', lineHeight: '1.6', fontStyle: 'italic' }}>
+                                    "{data.ai_summary}"
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', margin: 0 }}>
+                            <div style={{ padding: '1.5rem' }}>
+                                <h3 style={{ fontSize: '1rem', fontWeight: '700', color: 'white', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Target size={20} className="text-primary" /> Mentor Remarks
+                                </h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {data.feedbacks && data.feedbacks.length > 0 ? (
+                                        data.feedbacks.map((f: any, idx: number) => (
+                                            <div key={idx} style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.5rem', borderLeft: '3px solid var(--primary)' }}>
+                                                <p style={{ fontSize: '0.85rem', color: 'white' }}>{f.text}</p>
+                                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>- {f.column} ({f.date})</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No additional feedback recorded.</p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { MessageSquare, Edit2, Save } from 'lucide-react';
 import { useMsal } from '@azure/msal-react';
 import InternDetail from './InternDetail';
+import { API_BASE_URL } from '../config';
 
 interface Intern {
     EmpID: string;
@@ -48,7 +49,7 @@ const InternGrid: React.FC<Props> = ({ data, managerId, batchId }) => {
             // To pass auth to the backend, we would normally use Axios interceptors.
             // Since we built the interceptor concept in our heads but did not write it,
             // we will let the backend handle the payload or reload if required.
-            await axios.put('http://localhost:5000/api/bulk-update', {
+            await axios.put(`${API_BASE_URL}/api/bulk-update`, {
                 manager_id: managerId,
                 batch_id: batchId,
                 updates

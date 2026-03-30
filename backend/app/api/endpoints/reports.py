@@ -11,11 +11,11 @@ router = APIRouter(prefix="/api/reports", tags=["reports"])
 @router.get("/{emp_id}")
 async def get_report(emp_id: str, manager_id: str, batch_id: str):
     try:
-        intern = interns_collection.find_one({'EmpID': emp_id, 'manager_id': manager_id, 'batch_id': batch_id}, {'_id': 0})
-        score_doc = scores_collection.find_one({'EmpID': emp_id, 'manager_id': manager_id, 'batch_id': batch_id}, {'_id': 0})
-        feedbacks = list(feedback_collection.find({'EmpID': emp_id, 'manager_id': manager_id, 'batch_id': batch_id}, {'_id': 0}))
+        intern = interns_collection.find_one({'EmpID': emp_id, 'batch_id': batch_id}, {'_id': 0})
+        score_doc = scores_collection.find_one({'EmpID': emp_id, 'batch_id': batch_id}, {'_id': 0})
+        feedbacks = list(feedback_collection.find({'EmpID': emp_id, 'batch_id': batch_id}, {'_id': 0}))
         
-        subjects_doc = subjects_collection.find_one({'manager_id': manager_id, 'batch_id': batch_id}, {'_id': 0})
+        subjects_doc = subjects_collection.find_one({'batch_id': batch_id}, {'_id': 0})
         subjects_list = subjects_doc.get('list', []) if subjects_doc else []
         
         # Generate AI Summary
@@ -35,10 +35,10 @@ async def get_report(emp_id: str, manager_id: str, batch_id: str):
         except Exception:
             pass
 
-        settings = settings_collection.find_one({'manager_id': manager_id, 'batch_id': batch_id})
+        settings = settings_collection.find_one({'batch_id': batch_id})
         weightages = settings.get('weightages', {}) if settings else {}
         
-        all_scores_docs = list(scores_collection.find({'manager_id': manager_id, 'batch_id': batch_id}))
+        all_scores_docs = list(scores_collection.find({'batch_id': batch_id}))
         
         def calculate_score(s_doc):
             total = 0

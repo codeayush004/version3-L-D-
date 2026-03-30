@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Upload } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 interface Props {
     endpoint: string;
@@ -23,7 +24,7 @@ const FileUpload: React.FC<Props> = ({ endpoint, onSuccess, label, managerId, ba
         formData.append('batch_id', batchId);
 
         try {
-            await axios.post(`http://localhost:5000/api/${endpoint}`, formData);
+            await axios.post(`${API_BASE_URL}/api/${endpoint}`, formData);
             alert(`${label} uploaded successfully!`);
             onSuccess();
         } catch (error) {

@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useIsAuthenticated, useMsal } from '@azure/msal-react';
-import { loginRequest } from './authConfig';
 import { Home, BarChart2, MessageSquare, Users, BookOpen, Settings as SettingsIcon, Trash2 } from 'lucide-react';
 import FileUpload from './components/FileUpload';
 import InternGrid from './components/InternGrid';
@@ -10,15 +8,21 @@ import BatchDashboard from './components/BatchDashboard';
 import GlobalDashboard from './components/GlobalDashboard';
 import Settings from './components/Settings';
 import { Globe } from 'lucide-react';
+import { API_BASE_URL } from './config';
 import './App.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState('global');
   const [data, setData] = useState([]);
-  const [manager, setManager] = useState<any>(null);
+  const [manager] = useState<any>({
+    name: "Dev User",
+    manager_id: "dev@example.com",
+    username: "dev@example.com",
+    roles: ["LDManager", "Admin"]
+  });
   const [batches, setBatches] = useState<any[]>([]);
   const [activeBatch, setActiveBatch] = useState<any>(null);
-  const [subjects, setSubjects] = useState<any[]>([]); // Added subjects state
+  const [subjects, setSubjects] = useState<any[]>([]);
 
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -26,59 +30,23 @@ function App() {
   const [activeDepartment, setActiveDepartment] = useState<'Data Ops' | 'Data Engineering'>('Data Ops');
   const [isCreatingBatch, setIsCreatingBatch] = useState(false);
   const [isDeletingBatch, setIsDeletingBatch] = useState(false);
-
-  const isAuthenticated = useIsAuthenticated();
-  const { instance, accounts } = useMsal();
-
-  useEffect(() => {
-    if (isAuthenticated && accounts.length > 0) {
-      const user = accounts[0];
-      const roles = (user.idTokenClaims?.roles as string[]) || [];
-      setManager({
-        name: user.name,
-        manager_id: user.username,
-        username: user.username,
-        roles: roles
-      });
-
-      // Inject MSAL Bearer token into all outgoing Axios requests
-      const requestInterceptor = axios.interceptors.request.use(async (config) => {
-        try {
-          const tokenResponse = await instance.acquireTokenSilent({
-            scopes: ["User.Read"],
-            account: user
-          });
-          config.headers.Authorization = `Bearer ${tokenResponse.idToken}`;
-        } catch (error) {
-          console.error("Token acquisition failed", error);
-        }
-        return config;
-      });
-
-      return () => {
-        axios.interceptors.request.eject(requestInterceptor);
-      };
-    } else {
-      setManager(null);
-    }
-  }, [isAuthenticated, accounts, instance]);
+  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'ai', text: string }[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   const handleLogin = () => {
-    instance.loginRedirect(loginRequest).catch(e => console.error(e));
+    // No-op in dev mode
   };
 
   const handleLogout = () => {
-    instance.logoutRedirect({
-      postLogoutRedirectUri: "/",
-    });
+    window.location.reload();
   };
 
-  const isLDManager = manager?.roles?.includes('LDManager');
+  const canEdit = true;
 
   const fetchData = async () => {
     if (!manager || !activeBatch) return;
     try {
-      const res = await axios.get(`http://localhost:5000/api/scores?manager_id=${manager.manager_id}&batch_id=${activeBatch.batch_id}`);
+      const res = await axios.get(`${API_BASE_URL}/api/scores?manager_id=${manager.manager_id}&batch_id=${activeBatch.batch_id}`);
       setData(res.data);
     } catch (error) {
       console.error("Failed to fetch data", error);
@@ -88,13 +56,16 @@ function App() {
   const fetchBatches = async () => {
     if (!manager) return;
     try {
-      const res = await axios.get(`http://localhost:5000/api/batches?manager_id=${manager.manager_id}&department=${activeDepartment}`);
+      console.log("Fetching batches for:", manager.manager_id, activeDepartment);
+      const res = await axios.get(`${API_BASE_URL}/api/batches?manager_id=${manager.manager_id}&department=${activeDepartment}`);
+      console.log("Batches received:", res.data);
       setBatches(res.data);
       if (!activeBatch && res.data.length > 0) {
         setActiveBatch(res.data[0]);
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Batch fetch failed:", error);
+      alert("API Error: Unable to fetch batches. Check if backend is running on port 5000.");
     }
   };
 
@@ -103,7 +74,7 @@ function App() {
   const fetchSubjects = async () => {
     if (!manager || !activeBatch) return;
     try {
-      const res = await axios.get(`http://localhost:5000/api/subjects?manager_id=${manager.manager_id}&batch_id=${activeBatch.batch_id}`);
+      const res = await axios.get(`${API_BASE_URL}/api/subjects?manager_id=${manager.manager_id}&batch_id=${activeBatch.batch_id}`);
       setSubjects(res.data);
     } catch (error) {
       console.error(error);
@@ -115,7 +86,7 @@ function App() {
     if (!newBatchName || isCreatingBatch) return;
     setIsCreatingBatch(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/batches', {
+      const res = await axios.post(`${API_BASE_URL}/api/batches`, {
         name: newBatchName,
         manager_id: manager.manager_id,
         department: activeDepartment
@@ -123,7 +94,7 @@ function App() {
       setNewBatchName('');
       setShowBatchModal(false);
 
-      const batchesRes = await axios.get(`http://localhost:5000/api/batches?manager_id=${manager.manager_id}&department=${activeDepartment}`);
+      const batchesRes = await axios.get(`${API_BASE_URL}/api/batches?manager_id=${manager.manager_id}&department=${activeDepartment}`);
       setBatches(batchesRes.data);
 
       const newlyCreated = batchesRes.data.find((b: any) => b.batch_id === res.data.batch_id);
@@ -147,6 +118,8 @@ function App() {
       setActiveBatch(null); // Clear context when switching portals
       setData([]);
       setSubjects([]);
+      setChatHistory([]); // Clear chat when switching departments
+      setCurrentSessionId(null);
       fetchBatches();
     }
   }, [manager, activeDepartment]);
@@ -157,13 +130,12 @@ function App() {
     }
   }, [manager, activeBatch]);
 
-  if (!isAuthenticated || !manager) {
+  if (!manager) {
     return (
       <div className="auth-container">
         <div className="card auth-card" style={{ textAlign: 'center' }}>
           <div className="auth-header">
             <h2>Welcome to Sigmoid</h2>
-            <p>L&D Performance Portal</p>
           </div>
           <button className="btn" style={{ width: '100%', padding: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: '#0078D4' }} onClick={handleLogin}>
             Sign In with Microsoft
@@ -177,8 +149,7 @@ function App() {
     <div className="app-container">
       <div className="sidebar">
         <div>
-          <h1 style={{ marginBottom: '0.5rem' }}>L&D Portal</h1>
-
+          <h1 style={{ marginBottom: '0.1rem' }}>L&D Portal</h1>
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.3rem', borderRadius: '0.75rem', display: 'flex', gap: '0.3rem', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
             <button
               onClick={() => setActiveDepartment('Data Ops')}
@@ -207,7 +178,7 @@ function App() {
           <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700' }}>Active Batch</p>
-              {isLDManager && (
+              {canEdit && (
                 <button
                   onClick={() => setShowBatchModal(true)}
                   style={{ background: 'rgba(147, 51, 234, 0.1)', border: '1px solid rgba(147, 51, 234, 0.2)', color: 'var(--primary)', padding: '0.2rem 0.5rem', borderRadius: '0.4rem', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer' }}
@@ -229,7 +200,7 @@ function App() {
                   </option>
                 ))}
               </select>
-              {isLDManager && activeBatch && (
+              {canEdit && activeBatch && (
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   title="Delete Batch"
@@ -242,8 +213,9 @@ function App() {
           </div>
 
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '0.75rem', marginBottom: '2rem', border: '1px solid var(--border)' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700', marginBottom: '0.25rem' }}>Active Manager</p>
-            <p style={{ color: 'white', fontWeight: '600', wordBreak: 'break-all' }}>{manager.username}</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700', marginBottom: '0.25rem' }}>Active Manager Details</p>
+            <p style={{ color: 'white', fontWeight: '600', wordBreak: 'break-all', fontSize: '0.85rem' }}>ID: {manager.manager_id}</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginTop: '0.25rem' }}>Roles: {manager.roles?.join(', ') || 'No Roles Assigned'}</p>
           </div>
         </div>
 
@@ -300,7 +272,7 @@ function App() {
                     </div>
                     <p style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--primary)', lineHeight: '1' }}>{data.length}</p>
                   </div>
-                  {isLDManager && (
+                  {canEdit && (
                     <FileUpload endpoint="upload-interns" label="Upload Data" onSuccess={fetchData} managerId={manager.manager_id} batchId={activeBatch.batch_id} />
                   )}
                 </div>
@@ -326,7 +298,14 @@ function App() {
             )}
 
             {activeTab === 'chat' && (
-              <ChatBot managerId={manager.manager_id} batchId={activeBatch.batch_id} />
+              <ChatBot
+                managerId={manager.manager_id}
+                batchId={activeBatch.batch_id}
+                messages={chatHistory}
+                setMessages={setChatHistory}
+                sessionId={currentSessionId}
+                setSessionId={setCurrentSessionId}
+              />
             )}
             {activeTab === 'settings' && (
               <Settings managerId={manager.manager_id} batchId={activeBatch.batch_id} />
@@ -396,7 +375,7 @@ function App() {
                 onClick={async () => {
                   setIsDeletingBatch(true);
                   try {
-                    await axios.delete(`http://localhost:5000/api/batches/${activeBatch.batch_id}?manager_id=${manager.manager_id}`);
+                    await axios.delete(`${API_BASE_URL}/api/batches/${activeBatch.batch_id}?manager_id=${manager.manager_id}`);
                     const newBatches = batches.filter(b => b.batch_id !== activeBatch.batch_id);
                     setBatches(newBatches);
                     setActiveBatch(newBatches.length > 0 ? newBatches[0] : null);

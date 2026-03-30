@@ -10,11 +10,12 @@ from app.api.dependencies import verify_manager_role
 router = APIRouter(prefix="/api/batches", tags=["batches"])
 
 @router.post("", status_code=201)
-async def create_batch(data: BatchModel, token_payload: dict = Depends(verify_manager_role)):
+async def create_batch(data: BatchModel):
+    m_id = "dev@example.com"
     batch_id = str(ObjectId())
     batches_collection.insert_one({
         'batch_id': batch_id,
-        'manager_id': data.manager_id,
+        'manager_id': m_id,
         'name': data.name,
         'department': data.department
     })
@@ -85,20 +86,33 @@ async def create_batch(data: BatchModel, token_payload: dict = Depends(verify_ma
     return {"message": "Batch created", "batch_id": batch_id, "name": data.name}
 
 @router.get("")
-async def get_batches(manager_id: str, department: str = None):
+async def get_batches(department: str = "Data Ops", manager_id: str = "dev@example.com"):
     query = {}
     if department:
-        query['department'] = department
-        
+        if department.lower() == "data ops":
+            query['$or'] = [{'department': 'Data Ops'}, {'department': {'$exists': False}}]
+        else:
+            query['department'] = department
+            
+    query['manager_id'] = "dev@example.com"
+    
+    print(f"DEBUG QUERY: {query}")
     batches = list(batches_collection.find(query, {'_id': 0}))
     return batches
 
 @router.delete("/{batch_id}")
-async def delete_batch(batch_id: str, manager_id: str, token_payload: dict = Depends(verify_manager_role)):
-    batches_collection.delete_one({'batch_id': batch_id, 'manager_id': manager_id})
-    interns_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
-    scores_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
-    subjects_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
-    feedback_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
-    settings_collection.delete_many({'batch_id': batch_id, 'manager_id': manager_id})
+async def delete_batch(batch_id: str):
+    m_id = "dev@example.com"
+    
+    query = {'batch_id': batch_id, 'manager_id': m_id}
+        
+    res = batches_collection.delete_one(query)
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this batch or batch not found")
+        
+    interns_collection.delete_many({'batch_id': batch_id})
+    scores_collection.delete_many({'batch_id': batch_id})
+    subjects_collection.delete_many({'batch_id': batch_id})
+    feedback_collection.delete_many({'batch_id': batch_id})
+    settings_collection.delete_many({'batch_id': batch_id})
     return {"message": "Batch deleted successfully"}

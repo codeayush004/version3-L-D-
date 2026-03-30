@@ -41,6 +41,7 @@ class ChatQueryModel(BaseModel):
     manager_id: str
     batch_id: str
     history: Optional[list] = []
+    session_id: Optional[str] = None
 
 
 

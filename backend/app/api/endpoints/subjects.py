@@ -1,11 +1,14 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas.all_models import SubjectDeleteModel, SubjectUpdateModel
-from app.core.database import subjects_collection, scores_collection
+from app.core.database import subjects_collection, scores_collection, batches_collection
 
 router = APIRouter(prefix="/api/subjects", tags=["subjects"])
 
 @router.get("")
-async def get_subjects(manager_id: str, batch_id: str):
+async def get_subjects(batch_id: str, manager_id: str = "dev@example.com"):
+    # DEV BYPASS: No RBAC
+    m_id = "dev@example.com"
+    
     try:
         doc = subjects_collection.find_one({'batch_id': batch_id})
         if not doc: return []
@@ -26,16 +29,16 @@ async def delete_subject(data: SubjectDeleteModel):
     try:
         # Pull matching object or raw string
         subjects_collection.update_one(
-            {'manager_id': data.manager_id, 'batch_id': data.batch_id},
+            {'batch_id': data.batch_id},
             {'$pull': {'list': {'name': data.subject}}}
         )
         subjects_collection.update_one(
-            {'manager_id': data.manager_id, 'batch_id': data.batch_id},
+            {'batch_id': data.batch_id},
             {'$pull': {'list': data.subject}}
         )
         # Clean up scores
         scores_collection.update_many(
-            {'manager_id': data.manager_id, 'batch_id': data.batch_id},
+            {'batch_id': data.batch_id},
             {'$unset': {f'scores.{data.subject}': ""}}
         )
         return {"message": f"Subject {data.subject} deleted"}
@@ -45,7 +48,7 @@ async def delete_subject(data: SubjectDeleteModel):
 @router.put("")
 async def update_subject(data: SubjectUpdateModel):
     try:
-        subjects_doc = subjects_collection.find_one({'manager_id': data.manager_id, 'batch_id': data.batch_id})
+        subjects_doc = subjects_collection.find_one({'batch_id': data.batch_id})
         if subjects_doc:
             new_list = []
             found = False
@@ -69,7 +72,7 @@ async def update_subject(data: SubjectUpdateModel):
                 )
                 if data.new_name and data.new_name != data.old_name:
                     scores_collection.update_many(
-                        {'manager_id': data.manager_id, 'batch_id': data.batch_id},
+                        {'batch_id': data.batch_id},
                         {'$rename': {f'scores.{data.old_name}': f'scores.{data.new_name}'}}
                     )
         return {"message": "Subject updated"}
