@@ -9,17 +9,14 @@ import GlobalDashboard from './components/GlobalDashboard';
 import Settings from './components/Settings';
 import { Globe } from 'lucide-react';
 import { API_BASE_URL } from './config';
+import { loginRequest } from './authConfig';
+import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import './App.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState('global');
   const [data, setData] = useState([]);
-  const [manager] = useState<any>({
-    name: "Dev User",
-    manager_id: "dev@example.com",
-    username: "dev@example.com",
-    roles: ["LDManager", "Admin"]
-  });
+  const [manager, setManager] = useState<any>(null);
   const [batches, setBatches] = useState<any[]>([]);
   const [activeBatch, setActiveBatch] = useState<any>(null);
   const [subjects, setSubjects] = useState<any[]>([]);
@@ -33,15 +30,59 @@ function App() {
   const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'ai', text: string }[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
+  const { instance, accounts } = useMsal();
+  const isAuthenticated = useIsAuthenticated();
+
+  useEffect(() => {
+    if (isAuthenticated && accounts.length > 0) {
+      const activeAccount = accounts[0];
+      const roles = activeAccount.idTokenClaims?.roles || [];
+      setManager({
+        name: activeAccount.name || "Unknown User",
+        manager_id: activeAccount.idTokenClaims?.preferred_username || activeAccount.username,
+        username: activeAccount.username,
+        roles: roles
+      });
+    } else {
+      setManager(null);
+    }
+  }, [isAuthenticated, accounts]);
+
+  useEffect(() => {
+    const reqInterceptor = axios.interceptors.request.use(async (config) => {
+      if (isAuthenticated && accounts.length > 0) {
+        try {
+          const response = await instance.acquireTokenSilent({
+            ...loginRequest,
+            account: accounts[0]
+          });
+          config.headers.Authorization = `Bearer ${response.idToken}`;
+        } catch (error) {
+          console.error("Failed to acquire token silently", error);
+        }
+      }
+      return config;
+    }, (error) => {
+      return Promise.reject(error);
+    });
+
+    return () => {
+      axios.interceptors.request.eject(reqInterceptor);
+    }
+  }, [instance, accounts, isAuthenticated]);
+
   const handleLogin = () => {
-    // No-op in dev mode
+    instance.loginRedirect(loginRequest).catch(e => console.error(e));
   };
 
   const handleLogout = () => {
-    window.location.reload();
+    instance.logoutRedirect({
+      postLogoutRedirectUri: "/",
+    });
   };
 
-  const canEdit = true;
+  const roles = manager?.roles || [];
+  const canEdit = roles.map((r: string) => r.toLowerCase()).includes('ldmanager') || roles.map((r: string) => r.toLowerCase()).includes('admin');
 
   const fetchData = async () => {
     if (!manager || !activeBatch) return;

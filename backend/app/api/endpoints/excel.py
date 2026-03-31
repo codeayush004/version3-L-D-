@@ -16,10 +16,20 @@ router = APIRouter(prefix="/api", tags=["excel"])
 async def upload_interns(
     batch_id: str = Form(...),
     file: UploadFile = File(...),
-    manager_id: str = Form(None)
+    manager_id: str = Form(None),
+    token_payload: dict = Depends(verify_manager_role)
 ):
-    # DEV BYPASS: No RBAC
-    m_id = "dev@example.com"
+    roles = [r.lower() for r in token_payload.get("roles", [])]
+    is_admin = "admin" in roles
+    m_id = token_payload['identified_username']
+
+    if "adminviewer" in roles and not is_admin and "ldmanager" not in roles:
+        raise HTTPException(status_code=403, detail="Admin viewers cannot upload excel files")
+        
+    if not is_admin:
+        batch = batches_collection.find_one({'batch_id': batch_id, 'manager_id': {'$regex': f"^{m_id}$", '$options': 'i'}})
+        if not batch:
+            raise HTTPException(status_code=403, detail="Not authorized to upload data to this batch")
 
     try:
         contents = await file.read()

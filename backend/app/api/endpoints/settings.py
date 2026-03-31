@@ -15,10 +15,16 @@ class ThresholdSettings(BaseModel):
     weightages: dict = {}
 
 @router.get("/")
-async def get_settings(manager_id: str, batch_id: str):
+async def get_settings(batch_id: str, token_payload: dict = Depends(verify_manager_role)):
+    roles = [r.lower() for r in token_payload.get("roles", [])]
+    is_admin = "adminviewer" in roles or "admin" in roles
+    m_id = token_payload['identified_username']
+
     try:
-        # DEV BYPASS: No RBAC
-        m_id = "dev@example.com"
+        if not is_admin:
+            batch = batches_collection.find_one({'batch_id': batch_id, 'manager_id': {'$regex': f"^{m_id}$", '$options': 'i'}})
+            if not batch:
+                raise HTTPException(status_code=403, detail="Not authorized to access settings for this batch")
 
         settings = settings_collection.find_one({"batch_id": batch_id}, {"_id": 0})
         if not settings:
@@ -33,7 +39,7 @@ async def get_settings(manager_id: str, batch_id: str):
                     default_weights[name] = weight_per_subj
 
             return {
-                "manager_id": manager_id,
+                "manager_id": m_id,
                 "batch_id": batch_id,
                 "passing_score": 60.0,
                 "recommended_score": 75.0,
@@ -41,17 +47,33 @@ async def get_settings(manager_id: str, batch_id: str):
                 "weightages": default_weights
             }
         return settings
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/")
-async def update_settings(settings: ThresholdSettings):
+async def update_settings(settings: ThresholdSettings, token_payload: dict = Depends(verify_manager_role)):
+    roles = [r.lower() for r in token_payload.get("roles", [])]
+    is_admin = "admin" in roles
+    m_id = token_payload['identified_username']
+    
+    if "adminviewer" in roles and not is_admin and "ldmanager" not in roles:
+        raise HTTPException(status_code=403, detail="Admin viewers cannot modify settings")
+        
     try:
+        if not is_admin:
+            batch = batches_collection.find_one({'batch_id': settings.batch_id, 'manager_id': {'$regex': f"^{m_id}$", '$options': 'i'}})
+            if not batch:
+                raise HTTPException(status_code=403, detail="Not authorized to modify settings for this batch")
+
         settings_collection.update_one(
             {"batch_id": settings.batch_id},
             {"$set": settings.dict()},
             upsert=True
         )
         return {"message": "Settings updated successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

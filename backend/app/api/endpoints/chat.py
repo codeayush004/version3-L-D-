@@ -14,8 +14,9 @@ router = APIRouter(prefix="/api", tags=["chat"])
 groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
 @router.get("/chat/sessions")
-async def get_chat_sessions(batch_id: str):
-    match_query = {'batch_id': batch_id, 'manager_id': "dev@example.com"}
+async def get_chat_sessions(batch_id: str, token_payload: dict = Depends(verify_manager_role)):
+    m_id = token_payload['identified_username']
+    match_query = {'batch_id': batch_id, 'manager_id': m_id}
 
     try:
         # Group messages by session_id and get the first user message as the title
@@ -34,9 +35,10 @@ async def get_chat_sessions(batch_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/chat/session/{session_id}")
-async def get_chat_messages(session_id: str):
+async def get_chat_messages(session_id: str, token_payload: dict = Depends(verify_manager_role)):
+    m_id = token_payload['identified_username']
     try:
-        msgs = list(chat_history_collection.find({'session_id': session_id}).sort('timestamp', 1))
+        msgs = list(chat_history_collection.find({'session_id': session_id, 'manager_id': m_id}).sort('timestamp', 1))
         # Format for frontend: [{role: 'user'|'ai', text: string}]
         formatted = []
         for m in msgs:
@@ -50,10 +52,11 @@ class SessionUpdateModel(BaseModel):
     title: str
 
 @router.put("/chat/session/{session_id}")
-async def update_session_title(session_id: str, data: SessionUpdateModel):
+async def update_session_title(session_id: str, data: SessionUpdateModel, token_payload: dict = Depends(verify_manager_role)):
+    m_id = token_payload['identified_username']
     try:
         chat_history_collection.update_many(
-            {'session_id': session_id},
+            {'session_id': session_id, 'manager_id': m_id},
             {'$set': {'title': data.title}}
         )
         return {"message": "Session title updated"}
@@ -61,16 +64,17 @@ async def update_session_title(session_id: str, data: SessionUpdateModel):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/chat/session/{session_id}")
-async def delete_chat_session(session_id: str):
+async def delete_chat_session(session_id: str, token_payload: dict = Depends(verify_manager_role)):
+    m_id = token_payload['identified_username']
     try:
-        chat_history_collection.delete_many({'session_id': session_id})
+        chat_history_collection.delete_many({'session_id': session_id, 'manager_id': m_id})
         return {"message": "Session deleted"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/chat", response_model=dict)
-async def chat_endpoint(data: ChatQueryModel):
-    m_id = "dev@example.com"
+async def chat_endpoint(data: ChatQueryModel, token_payload: dict = Depends(verify_manager_role)):
+    m_id = token_payload['identified_username']
     try:
         session_id = data.session_id or str(ObjectId())
         

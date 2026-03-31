@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from bson import ObjectId
 from app.schemas.all_models import BatchModel
 from app.core.database import (
@@ -10,9 +10,15 @@ from app.api.dependencies import verify_manager_role
 router = APIRouter(prefix="/api/batches", tags=["batches"])
 
 @router.post("", status_code=201)
-async def create_batch(data: BatchModel):
-    m_id = "dev@example.com"
+async def create_batch(data: BatchModel, token_payload: dict = Depends(verify_manager_role)):
+    m_id = token_payload['identified_username']
     batch_id = str(ObjectId())
+    
+    # Check if admin/ldmanager (adminviewer shouldn't create batches realistically, but allowed_roles restricts global access)
+    roles = [r.lower() for r in token_payload.get("roles", [])]
+    if "adminviewer" in roles and "ldmanager" not in roles and "admin" not in roles:
+        raise HTTPException(status_code=403, detail="Admin viewers cannot create batches")
+
     batches_collection.insert_one({
         'batch_id': batch_id,
         'manager_id': m_id,
@@ -33,14 +39,14 @@ async def create_batch(data: BatchModel):
             {"name": "L&D Feedback", "total_marks": 100}
         ]
         subjects_collection.insert_one({
-            'manager_id': data.manager_id,
+            'manager_id': m_id,
             'batch_id': batch_id,
             'list': de_subjects
         })
         
-        # Default Weights for DE (Distributed across 8 subjects)
+        # Default Weights for DE
         settings_collection.insert_one({
-            'manager_id': data.manager_id,
+            'manager_id': m_id,
             'batch_id': batch_id,
             'passing_score': 60.0,
             'recommended_score': 75.0,
@@ -65,13 +71,13 @@ async def create_batch(data: BatchModel):
             {"name": "Tech Demo", "total_marks": 100}
         ]
         subjects_collection.insert_one({
-            'manager_id': data.manager_id,
+            'manager_id': m_id,
             'batch_id': batch_id,
             'list': ops_subjects
         })
         
         settings_collection.insert_one({
-            'manager_id': data.manager_id,
+            'manager_id': m_id,
             'batch_id': batch_id,
             'passing_score': 60.0,
             'recommended_score': 75.0,
@@ -86,7 +92,11 @@ async def create_batch(data: BatchModel):
     return {"message": "Batch created", "batch_id": batch_id, "name": data.name}
 
 @router.get("")
-async def get_batches(department: str = "Data Ops", manager_id: str = "dev@example.com"):
+async def get_batches(department: str = "Data Ops", token_payload: dict = Depends(verify_manager_role)):
+    roles = [r.lower() for r in token_payload.get("roles", [])]
+    is_admin = "adminviewer" in roles or "admin" in roles
+    m_id = token_payload['identified_username']
+
     query = {}
     if department:
         if department.lower() == "data ops":
@@ -94,17 +104,25 @@ async def get_batches(department: str = "Data Ops", manager_id: str = "dev@examp
         else:
             query['department'] = department
             
-    query['manager_id'] = "dev@example.com"
+    if not is_admin:
+        query['manager_id'] = {'$regex': f"^{m_id}$", '$options': 'i'}
     
-    print(f"DEBUG QUERY: {query}")
     batches = list(batches_collection.find(query, {'_id': 0}))
     return batches
 
 @router.delete("/{batch_id}")
-async def delete_batch(batch_id: str):
-    m_id = "dev@example.com"
+async def delete_batch(batch_id: str, token_payload: dict = Depends(verify_manager_role)):
+    roles = [r.lower() for r in token_payload.get("roles", [])]
+    is_admin = "admin" in roles
+    m_id = token_payload['identified_username']
     
-    query = {'batch_id': batch_id, 'manager_id': m_id}
+    if "adminviewer" in roles and not is_admin and "ldmanager" not in roles:
+        raise HTTPException(status_code=403, detail="Admin viewers cannot delete batches")
+
+    if is_admin:
+        query = {'batch_id': batch_id}
+    else:
+        query = {'batch_id': batch_id, 'manager_id': {'$regex': f"^{m_id}$", '$options': 'i'}}
         
     res = batches_collection.delete_one(query)
     if res.deleted_count == 0:
